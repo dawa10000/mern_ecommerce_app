@@ -15,7 +15,6 @@ import {
 
 export const STORAGE_KEY = "checkout_billing_info";
 
-
 const redirectToEsewa = async (orderId, total) => {
   const res = await fetch("/api/checkout/esewa-signature", {
     method: "POST",
@@ -24,8 +23,6 @@ const redirectToEsewa = async (orderId, total) => {
   });
 
   const { signature, productCode, amount } = await res.json();
-
-
 
   const form = document.createElement("form");
   form.setAttribute("method", "POST");
@@ -121,7 +118,10 @@ function FormField({ label, name, type = "text", placeholder }) {
   return (
     <div>
       <label className="block text-sm mb-1 font-medium text-gray-700">{label}</label>
-      <Field name={name} type={type} placeholder={placeholder}
+      <Field
+        name={name}
+        type={type}
+        placeholder={placeholder}
         className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
       />
       <ErrorMessage name={name} component="p" className="text-red-500 text-xs mt-1" />
@@ -143,6 +143,10 @@ export default function Checkout() {
   const [createCheckout, { isLoading }] = useCreateCheckoutMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  // ✅ FIX: Store validated values in state so the dialog confirmation
+  // uses the exact same values that passed validation — not a stale closure.
+  const [pendingValues, setPendingValues] = useState(null);
+
   const savedInfo = loadBillingInfo();
   const initialValues = savedInfo ? { ...defaultValues, ...savedInfo } : defaultValues;
 
@@ -152,24 +156,36 @@ export default function Checkout() {
   const formatPrice = (amount) =>
     `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 
+  // ✅ FIX: handleSubmit now only accepts plain values object (not a Formik event).
+  // It's called explicitly with pendingValues — never passed as Formik's onSubmit.
   const handleSubmit = async (values) => {
     if (cart.length === 0) { toast.error("Your cart is empty"); return; }
 
     const products = cart.map((item) => ({ product: item.id, quantity: item.quantity }));
 
     const body = {
-      firstName: values.firstName, lastName: values.lastName,
-      companyName: values.companyName, country: values.country,
-      street: values.street, city: values.city, province: values.province,
-      zip: values.zip, phone: values.phone, email: values.email,
-      additionalInfo: values.additionalInfo, paymentMethod: values.paymentMethod,
-      products, subtotal, total,
+      firstName: values.firstName,
+      lastName: values.lastName,
+      companyName: values.companyName,
+      country: values.country,
+      street: values.street,
+      city: values.city,
+      province: values.province,
+      zip: values.zip,
+      phone: values.phone,
+      email: values.email,
+      additionalInfo: values.additionalInfo,
+      paymentMethod: values.paymentMethod,
+      products,
+      subtotal,
+      total,
     };
 
     try {
       const res = await createCheckout({ body, token: user?.token }).unwrap();
       dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
       setDialogOpen(false);
+      setPendingValues(null);
 
       if (values.paymentMethod === "eSewa") {
         await redirectToEsewa(res.order._id, total);
@@ -179,9 +195,9 @@ export default function Checkout() {
         toast.success("Order placed successfully!");
         nav("/");
       }
-
     } catch (err) {
       setDialogOpen(false);
+      setPendingValues(null);
       toast.error(err?.data?.message || "Something went wrong");
     }
   };
@@ -194,9 +210,11 @@ export default function Checkout() {
           <div className="flex items-center justify-between mb-10">
             <h1 className="text-3xl font-bold tracking-tight font-serif">Billing details</h1>
             {savedInfo && (
-              <button type="button"
+              <button
+                type="button"
                 onClick={() => { localStorage.removeItem(STORAGE_KEY); window.location.reload(); }}
-                className="text-xs text-gray-400 underline hover:text-red-500 transition-colors">
+                className="text-xs text-gray-400 underline hover:text-red-500 transition-colors"
+              >
                 Clear saved info
               </button>
             )}
@@ -209,13 +227,21 @@ export default function Checkout() {
             </div>
           )}
 
-          <Formik initialValues={initialValues} validationSchema={checkoutSchema}
-            onSubmit={handleSubmit} enableReinitialize>
+          {/* ✅ FIX: Formik's onSubmit is a no-op dummy. We handle submission
+              manually via pendingValues so we control exactly when and how
+              the API call fires (after dialog confirmation). */}
+          <Formik
+            initialValues={initialValues}
+            validationSchema={checkoutSchema}
+            onSubmit={() => { }}
+            enableReinitialize
+          >
             {({ values, setFieldValue, validateForm, setTouched }) => (
               <Form>
                 <AutoSave />
                 <div className="flex flex-col lg:flex-row gap-16">
 
+                  {/* ── Left: Billing Fields ── */}
                   <div className="flex-1 space-y-6">
                     <div className="flex gap-4">
                       <div className="flex-1"><FormField label="First Name" name="firstName" /></div>
@@ -226,8 +252,11 @@ export default function Checkout() {
                     <div>
                       <label className="block text-sm mb-1 font-medium text-gray-700">Country / Region</label>
                       <div className="relative">
-                        <Field as="select" name="country"
-                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white text-gray-600">
+                        <Field
+                          as="select"
+                          name="country"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white text-gray-600"
+                        >
                           {countries.map((c) => <option key={c}>{c}</option>)}
                         </Field>
                         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">▼</span>
@@ -240,8 +269,11 @@ export default function Checkout() {
                     <div>
                       <label className="block text-sm mb-1 font-medium text-gray-700">Province</label>
                       <div className="relative">
-                        <Field as="select" name="province"
-                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white text-gray-600">
+                        <Field
+                          as="select"
+                          name="province"
+                          className="w-full border border-gray-300 rounded px-3 py-2 text-sm appearance-none focus:outline-none focus:ring-1 focus:ring-gray-400 bg-white text-gray-600"
+                        >
                           {provinces.map((p) => <option key={p}>{p}</option>)}
                         </Field>
                         <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">▼</span>
@@ -253,12 +285,17 @@ export default function Checkout() {
                     <FormField label="Email address" name="email" type="email" />
 
                     <div>
-                      <Field as="textarea" name="additionalInfo" placeholder="Additional information" rows={3}
+                      <Field
+                        as="textarea"
+                        name="additionalInfo"
+                        placeholder="Additional information"
+                        rows={3}
                         className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 placeholder-gray-400 resize-none"
                       />
                     </div>
                   </div>
 
+                  {/* ── Right: Order Summary + Payment ── */}
                   <div className="w-full lg:w-80 space-y-4">
                     <div>
                       <div className="flex justify-between text-sm font-semibold mb-3 border-b pb-2">
@@ -285,7 +322,10 @@ export default function Checkout() {
                       <p className="text-sm font-semibold text-gray-800">Payment Method</p>
 
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "eSewa" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
-                        <input type="radio" name="paymentMethod" value="eSewa"
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="eSewa"
                           checked={values.paymentMethod === "eSewa"}
                           onChange={() => setFieldValue("paymentMethod", "eSewa")}
                           className="accent-green-600"
@@ -302,7 +342,10 @@ export default function Checkout() {
                       </label>
 
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "Cash On Delivery" ? "border-gray-800 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}>
-                        <input type="radio" name="paymentMethod" value="Cash On Delivery"
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="Cash On Delivery"
                           checked={values.paymentMethod === "Cash On Delivery"}
                           onChange={() => setFieldValue("paymentMethod", "Cash On Delivery")}
                           className="accent-gray-700"
@@ -335,6 +378,8 @@ export default function Checkout() {
                         <strong className="text-gray-800">privacy policy.</strong>
                       </p>
 
+                      {/* ✅ FIX: Validate → save pendingValues → open dialog.
+                          No longer calling handleSubmit here at all. */}
                       <button
                         type="button"
                         disabled={isLoading || cart.length === 0}
@@ -344,6 +389,7 @@ export default function Checkout() {
                           setTouched(touched);
                           const errors = await validateForm();
                           if (Object.keys(errors).length === 0) {
+                            setPendingValues({ ...values }); // snapshot current values
                             setDialogOpen(true);
                           } else {
                             toast.error("Please fill in all required fields");
@@ -354,6 +400,9 @@ export default function Checkout() {
                         {isLoading ? "Processing..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
                       </button>
 
+                      {/* ✅ FIX: AlertDialogAction now calls handleSubmit(pendingValues)
+                          — a plain object, never a Formik event — so it works
+                          identically in dev and production builds on Render. */}
                       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <AlertDialogContent>
                           <AlertDialogHeader>
@@ -383,17 +432,17 @@ export default function Checkout() {
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500 border-t pt-2">
                                   <span>Payment</span>
-                                  <span className={`font-medium ${values.paymentMethod === "eSewa" ? "text-green-600" : "text-gray-700"}`}>
-                                    {values.paymentMethod}
+                                  <span className={`font-medium ${pendingValues?.paymentMethod === "eSewa" ? "text-green-600" : "text-gray-700"}`}>
+                                    {pendingValues?.paymentMethod}
                                   </span>
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500">
                                   <span>Shipping To</span>
                                   <span className="font-medium text-gray-700 text-right max-w-[60%]">
-                                    {values.street}, {values.city}, {values.province}
+                                    {pendingValues?.street}, {pendingValues?.city}, {pendingValues?.province}
                                   </span>
                                 </div>
-                                {values.paymentMethod === "eSewa" && (
+                                {pendingValues?.paymentMethod === "eSewa" && (
                                   <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-xs text-green-700">
                                     You will be redirected to eSewa to complete payment.
                                   </div>
@@ -403,17 +452,25 @@ export default function Checkout() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel className="text-sm border-gray-300">Go Back</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleSubmit(values)}
-                              disabled={isLoading}
-                              className={`text-sm text-white ${values.paymentMethod === "eSewa" ? "bg-green-600 hover:bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
+                            <AlertDialogCancel
+                              className="text-sm border-gray-300"
+                              onClick={() => { setDialogOpen(false); setPendingValues(null); }}
                             >
-                              {isLoading ? "Processing..." : values.paymentMethod === "eSewa" ? "Pay with eSewa" : "✓ Confirm Order"}
+                              Go Back
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                if (pendingValues) handleSubmit(pendingValues);
+                              }}
+                              disabled={isLoading}
+                              className={`text-sm text-white ${pendingValues?.paymentMethod === "eSewa" ? "bg-green-600 hover:bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
+                            >
+                              {isLoading ? "Processing..." : pendingValues?.paymentMethod === "eSewa" ? "Pay with eSewa" : "✓ Confirm Order"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+
                     </div>
                   </div>
                 </div>
