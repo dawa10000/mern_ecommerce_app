@@ -184,6 +184,8 @@ export default function Checkout() {
     } catch (err) {
       setDialogOpen(false);
       toast.error(err?.data?.message || "Something went wrong");
+    } finally {
+      setDialogOpen(false);
     }
   };
 
