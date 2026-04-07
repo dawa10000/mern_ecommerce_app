@@ -1,3 +1,6 @@
+import { setDefaultResultOrder } from "dns";
+setDefaultResultOrder("ipv4first");
+
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 
@@ -15,8 +18,7 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import checkoutRoutes from './routes/checkoutRoutes.js';
 
 
-const dns = require("dns");
-dns.setDefaultResultOrder("ipv4first");
+
 
 const app = express();
 setServers(["1.1.1.1", "8.8.8.8"]);
