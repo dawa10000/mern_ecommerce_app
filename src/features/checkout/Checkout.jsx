@@ -40,8 +40,8 @@ const redirectToEsewa = async (orderId, total) => {
     product_code: productCode,
     product_service_charge: "0",
     product_delivery_charge: "0",
-    success_url: `${baseUrl}/checkout/verify-esewa`,
-    failure_url: `${baseUrl}/checkout/verify-esewa`,
+    success_url: `${window.location.origin}/payment-success?order=${orderId}`,
+    failure_url: `${window.location.origin}/payment-failed`,
     signed_field_names: "total_amount,transaction_uuid,product_code",
     signature,
   };
