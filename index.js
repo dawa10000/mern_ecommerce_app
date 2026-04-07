@@ -40,6 +40,14 @@ app.use(fileUpload({
   limits: { fileSize: 5 * 1024 * 1024 },
 }));
 
+app.get('/payment-success', (req, res) => {
+  const order = req.query.order;
+  res.redirect(`${process.env.FRONTEND_URL}/payment-success${order ? `?order=${order}` : ''}`);
+});
+
+app.get('/payment-failed', (req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+});
 // 3. Routes
 app.get("/", (req, res) => res.status(200).json({ message: "Welcome to backend" }));
 app.use("/api/products", productRoutes);
