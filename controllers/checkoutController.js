@@ -38,7 +38,9 @@ export const createCheckout = async (req, res) => {
       paymentMethod, products, subtotal, total
     });
 
-    await sendOrderReceivedAdmin(order);
+    sendOrderReceivedAdmin(order).catch((err) => {
+      console.error("Mailer error (non-fatal):", err.message);
+    });
 
     return res.status(201).json({
       message: "Order placed successfully",
@@ -71,7 +73,9 @@ export const updateOrderStatus = async (req, res) => {
     }
 
 
-    await sendOrderStatusUpdate(order);
+    sendOrderStatusUpdate(order).catch((err) => {
+      console.error("Mailer error (non-fatal):", err.message);
+    });
 
     res.status(200).json(order);
   } catch (error) {
@@ -156,8 +160,9 @@ export const verifyEsewa = async (req, res) => {
     if (!order) return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
 
 
-    await sendOrderReceivedAdmin(order);
-
+    sendOrderReceivedAdmin(order).catch((err) => {
+      console.error("Mailer error (non-fatal):", err.message);
+    });
     return res.redirect(`${process.env.FRONTEND_URL}/payment-success?order=${order._id}`);
 
   } catch (err) {
