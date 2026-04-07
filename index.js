@@ -23,10 +23,13 @@ const app = express();
 // 1. CORS first
 app.use(cors({
   credentials: true,
-  origin: ["http://localhost:5173", "https://mern-ecommerce-app-xi.vercel.app"],
+  origin: ["https://mern-ecommerce-app-xi.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
+// Add this line explicitly
+app.options("*", cors());
 
 // 2. Body parsing middleware
 app.use(cookieParser());
@@ -44,6 +47,11 @@ app.use("/api/products", productRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/checkout", checkoutRoutes);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: err.message || "Internal Server Error" });
+});
 
 // 4. Connect DB then start server
 mongoose.connect(process.env.DB_URL)
