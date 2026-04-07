@@ -1,0 +1,188 @@
+
+import Checkout from "../models/Checkout.js";
+import Product from "../models/Product.js";
+import crypto from 'crypto';
+import { sendOrderReceivedAdmin, sendOrderStatusUpdate } from "../utlis/mailer.js";
+
+
+export const createCheckout = async (req, res) => {
+  const {
+    firstName, lastName, companyName,
+    country, street, city, province, zip,
+    phone, email, additionalInfo,
+    paymentMethod, products, subtotal, total
+  } = req.body;
+
+  try {
+    for (const item of products) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ message: `Product not found: ${item.product}` });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({ message: `Insufficient stock for: ${product.title}` });
+      }
+    }
+
+    for (const item of products) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { stock: -item.quantity }
+      });
+    }
+
+    const order = await Checkout.create({
+      user: req.userId,
+      firstName, lastName, companyName,
+      country, street, city, province, zip,
+      phone, email, additionalInfo,
+      paymentMethod, products, subtotal, total
+    });
+
+    await sendOrderReceivedAdmin(order);
+
+    return res.status(201).json({
+      message: "Order placed successfully",
+      order
+    });
+  } catch (err) {
+    console.log("createCheckout error:", err.message);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowed = ["pending", "processing", "shipped", "delivered", "cancelled"];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    const order = await Checkout.findByIdAndUpdate(
+      id,
+      { status },
+      { returnDocument: 'after' }
+    ).populate("products.product");
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+
+    await sendOrderStatusUpdate(order);
+
+    res.status(200).json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Checkout.find()
+      .populate("products.product")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(orders);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getMyOrders = async (req, res) => {
+  try {
+    const orders = await Checkout.find({ user: req.userId })
+      .populate("products.product", "title price image")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(orders);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const getOrder = async (req, res) => {
+  try {
+    const order = await Checkout.findById(req.params.id)
+      .populate("products.product", "title price image")
+      .populate("user", "username email");
+
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    return res.status(200).json(order);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const verifyEsewa = async (req, res) => {
+  try {
+    const { data } = req.query;
+
+    const decoded = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
+
+    const {
+      transaction_uuid,
+      status,
+      transaction_code,
+      signed_field_names,
+      signature,
+    } = decoded;
+
+    if (status !== "COMPLETE") {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
+
+    const secretKey = process.env.ESEWA_SECRET_KEY;
+    const signedFields = signed_field_names.split(",");
+    const message = signedFields.map((f) => `${f}=${decoded[f]}`).join(",");
+    const expectedSignature = crypto
+      .createHmac("sha256", secretKey)
+      .update(message)
+      .digest("base64");
+
+    if (signature !== expectedSignature) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
+
+    const order = await Checkout.findByIdAndUpdate(
+      transaction_uuid,
+      { status: "processing", paymentStatus: "paid", transaction_code },
+      { returnDocument: 'after' }
+    );
+
+    if (!order) return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+
+
+    await sendOrderReceivedAdmin(order);
+
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-success?order=${order._id}`);
+
+  } catch (err) {
+    console.log("eSewa verify error:", err.message);
+    return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+  }
+};
+
+export const getEsewaSignature = async (req, res) => {
+  try {
+    const { total, orderId } = req.body;
+    const productCode = process.env.ESEWA_PRODUCT_CODE;
+    const secretKey = process.env.ESEWA_SECRET_KEY;
+
+
+    const amount = Number(Number(total).toFixed(2));
+
+    const message = `total_amount=${amount},transaction_uuid=${orderId},product_code=${productCode}`;
+    const signature = crypto
+      .createHmac("sha256", secretKey)
+      .update(message)
+      .digest("base64");
+
+    return res.status(200).json({ signature, productCode, amount });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
