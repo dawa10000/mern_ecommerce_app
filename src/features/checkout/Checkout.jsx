@@ -18,7 +18,7 @@ export const STORAGE_KEY = "checkout_billing_info";
 
 
 const redirectToEsewa = async (orderId, total) => {
-  const res = await fetch(`/checkout/esewa-signature`, {
+  const res = await fetch(`${baseUrl}/checkout/esewa-signature`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ total, orderId }),
