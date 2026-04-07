@@ -1,15 +1,24 @@
 import { setDefaultResultOrder } from "dns";
 setDefaultResultOrder("ipv4first");
 
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+
+
+app.use(cors({
+  credentials: true,
+  origin: ['http://localhost:5173', 'https://mern-ecommerce-app-xi.vercel.app']
+}));
+
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 
-
-import express from 'express';
 import mongoose from 'mongoose';
 import fileUpload from 'express-fileupload';
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
+
 import { setServers } from "node:dns/promises";
 
 import productRoutes from './routes/productRoutes.js';
@@ -20,7 +29,7 @@ import checkoutRoutes from './routes/checkoutRoutes.js';
 
 
 
-const app = express();
+
 setServers(["1.1.1.1", "8.8.8.8"]);
 
 
@@ -34,10 +43,7 @@ mongoose.connect(process.env.DB_URL).then((val) => {
   console.log(err);
 });
 
-app.use(cors({
-  credentials: true,
-  origin: ['http://localhost:5173', 'https://mern-ecommerce-app-xi.vercel.app']
-}));
+
 app.use(cookieParser());
 app.use(fileUpload({
   useTempFiles: false,
