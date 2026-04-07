@@ -18,7 +18,7 @@ export const STORAGE_KEY = "checkout_billing_info";
 
 
 const redirectToEsewa = async (orderId, total) => {
-  const res = await fetch(`${baseUrl}/checkout/esewa-signature`, {
+  const res = await fetch(`/checkout/esewa-signature`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ total, orderId }),
@@ -40,7 +40,7 @@ const redirectToEsewa = async (orderId, total) => {
     product_code: productCode,
     product_service_charge: "0",
     product_delivery_charge: "0",
-    success_url: `${window.location.origin}/payment-success?order=${orderId}`,
+    success_url: `${window.location.origin}/payment-success`,
     failure_url: `${window.location.origin}/payment-failed`,
     signed_field_names: "total_amount,transaction_uuid,product_code",
     signature,
