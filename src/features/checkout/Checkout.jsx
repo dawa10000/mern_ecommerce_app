@@ -8,9 +8,13 @@ import { useCreateCheckoutMutation } from "./checkoutApi.js";
 import { setOrderSuccess } from "./checkoutSlice.js";
 import { clearCart } from "../carts/cartSlice.js";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription,
-  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
 export const STORAGE_KEY = "checkout_billing_info";
@@ -73,7 +77,7 @@ function CheckoutHero() {
 const provinces = [
   "Western Province", "Central Province", "Southern Province",
   "Northern Province", "Eastern Province", "North Western Province",
-  "North Central Province", "Uva Province", "Sabaragamuwa Province"
+  "North Central Province", "Uva Province", "Sabaragamuwa Province",
 ];
 const countries = ["Sri Lanka", "India", "Maldives", "Nepal", "Bangladesh"];
 
@@ -142,9 +146,6 @@ export default function Checkout() {
   const { user } = useSelector((state) => state.userSlice);
   const [createCheckout, { isLoading }] = useCreateCheckoutMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  // ✅ FIX: Store validated values in state so the dialog confirmation
-  // uses the exact same values that passed validation — not a stale closure.
   const [pendingValues, setPendingValues] = useState(null);
 
   const savedInfo = loadBillingInfo();
@@ -156,26 +157,26 @@ export default function Checkout() {
   const formatPrice = (amount) =>
     `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 
-  // ✅ FIX: handleSubmit now only accepts plain values object (not a Formik event).
-  // It's called explicitly with pendingValues — never passed as Formik's onSubmit.
-  const handleSubmit = async (values) => {
-    if (cart.length === 0) { toast.error("Your cart is empty"); return; }
+  // This is called ONLY from the plain confirm button inside the dialog.
+  // It never touches Formik internals — fully self-contained.
+  const handleConfirm = async () => {
+    if (!pendingValues || cart.length === 0) return;
 
     const products = cart.map((item) => ({ product: item.id, quantity: item.quantity }));
 
     const body = {
-      firstName: values.firstName,
-      lastName: values.lastName,
-      companyName: values.companyName,
-      country: values.country,
-      street: values.street,
-      city: values.city,
-      province: values.province,
-      zip: values.zip,
-      phone: values.phone,
-      email: values.email,
-      additionalInfo: values.additionalInfo,
-      paymentMethod: values.paymentMethod,
+      firstName: pendingValues.firstName,
+      lastName: pendingValues.lastName,
+      companyName: pendingValues.companyName,
+      country: pendingValues.country,
+      street: pendingValues.street,
+      city: pendingValues.city,
+      province: pendingValues.province,
+      zip: pendingValues.zip,
+      phone: pendingValues.phone,
+      email: pendingValues.email,
+      additionalInfo: pendingValues.additionalInfo,
+      paymentMethod: pendingValues.paymentMethod,
       products,
       subtotal,
       total,
@@ -184,16 +185,20 @@ export default function Checkout() {
     try {
       const res = await createCheckout({ body, token: user?.token }).unwrap();
       dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
+
+      // Close dialog before any navigation/redirect
       setDialogOpen(false);
       setPendingValues(null);
 
-      if (values.paymentMethod === "eSewa") {
+      if (pendingValues.paymentMethod === "eSewa") {
+        // form.submit() takes over the page — no toast needed
         await redirectToEsewa(res.order._id, total);
       } else {
         localStorage.removeItem(STORAGE_KEY);
         dispatch(clearCart());
-        toast.success("Order placed successfully!");
         nav("/");
+        // Fire toast after nav so it shows on the destination page
+        toast.success("Order placed successfully!");
       }
     } catch (err) {
       setDialogOpen(false);
@@ -227,9 +232,6 @@ export default function Checkout() {
             </div>
           )}
 
-          {/* ✅ FIX: Formik's onSubmit is a no-op dummy. We handle submission
-              manually via pendingValues so we control exactly when and how
-              the API call fires (after dialog confirmation). */}
           <Formik
             initialValues={initialValues}
             validationSchema={checkoutSchema}
@@ -378,8 +380,7 @@ export default function Checkout() {
                         <strong className="text-gray-800">privacy policy.</strong>
                       </p>
 
-                      {/* ✅ FIX: Validate → save pendingValues → open dialog.
-                          No longer calling handleSubmit here at all. */}
+                      {/* Validate → snapshot → open dialog. No submission here. */}
                       <button
                         type="button"
                         disabled={isLoading || cart.length === 0}
@@ -389,7 +390,7 @@ export default function Checkout() {
                           setTouched(touched);
                           const errors = await validateForm();
                           if (Object.keys(errors).length === 0) {
-                            setPendingValues({ ...values }); // snapshot current values
+                            setPendingValues({ ...values });
                             setDialogOpen(true);
                           } else {
                             toast.error("Please fill in all required fields");
@@ -397,13 +398,19 @@ export default function Checkout() {
                         }}
                         className="w-full border border-gray-800 text-gray-800 text-sm py-3 rounded hover:bg-gray-800 hover:text-white transition-colors duration-200 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isLoading ? "Processing..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
+                        {values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
                       </button>
 
-                      {/* ✅ FIX: AlertDialogAction now calls handleSubmit(pendingValues)
-                          — a plain object, never a Formik event — so it works
-                          identically in dev and production builds on Render. */}
-                      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                      <AlertDialog
+                        open={dialogOpen}
+                        onOpenChange={(open) => {
+                          // Block outside-click close while API call is in-flight
+                          if (!isLoading) {
+                            setDialogOpen(open);
+                            if (!open) setPendingValues(null);
+                          }
+                        }}
+                      >
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle className="font-serif text-xl">Confirm Your Order</AlertDialogTitle>
@@ -452,21 +459,44 @@ export default function Checkout() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
+                            {/* Go Back — use AlertDialogCancel for accessibility */}
                             <AlertDialogCancel
-                              className="text-sm border-gray-300"
-                              onClick={() => { setDialogOpen(false); setPendingValues(null); }}
+                              disabled={isLoading}
+                              className="text-sm border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => {
+                                setDialogOpen(false);
+                                setPendingValues(null);
+                              }}
                             >
                               Go Back
                             </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => {
-                                if (pendingValues) handleSubmit(pendingValues);
-                              }}
+
+                            {/*
+                              ✅ THE CORE FIX:
+                              Plain <button type="button"> instead of <AlertDialogAction>.
+                              AlertDialogAction triggers dialog close + potential form submit
+                              before the async API call resolves, which is why the page
+                              was stuck on "Processing..." and never navigated.
+                              A plain button lets us fully own the async lifecycle.
+                            */}
+                            <button
+                              type="button"
                               disabled={isLoading}
-                              className={`text-sm text-white ${pendingValues?.paymentMethod === "eSewa" ? "bg-green-600 hover:bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
+                              onClick={handleConfirm}
+                              className={`inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors
+                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+                                disabled:pointer-events-none disabled:opacity-50
+                                ${pendingValues?.paymentMethod === "eSewa"
+                                  ? "bg-green-600 hover:bg-green-700 focus-visible:ring-green-600"
+                                  : "bg-gray-900 hover:bg-gray-700 focus-visible:ring-gray-900"
+                                }`}
                             >
-                              {isLoading ? "Processing..." : pendingValues?.paymentMethod === "eSewa" ? "Pay with eSewa" : "✓ Confirm Order"}
-                            </AlertDialogAction>
+                              {isLoading
+                                ? "Processing..."
+                                : pendingValues?.paymentMethod === "eSewa"
+                                  ? "Pay with eSewa"
+                                  : "✓ Confirm Order"}
+                            </button>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
