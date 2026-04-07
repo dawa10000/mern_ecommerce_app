@@ -28,8 +28,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-// Add this line explicitly
-app.options("*", cors());
+
 
 // 2. Body parsing middleware
 app.use(cookieParser());
