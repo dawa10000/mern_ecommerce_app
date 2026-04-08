@@ -127,7 +127,7 @@ export const getOrder = async (req, res) => {
 
 export const verifyEsewa = async (req, res) => {
   try {
-    const { data } = req.body;
+    const { data } = req.query;
 
     const decoded = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
 
