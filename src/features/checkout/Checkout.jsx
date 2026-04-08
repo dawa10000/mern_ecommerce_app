@@ -26,7 +26,7 @@ const redirectToEsewa = async (orderId, total) => {
 
   const { signature, productCode, amount } = await res.json();
 
-  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin; // ✅ fixed
 
   const form = document.createElement("form");
   form.setAttribute("method", "POST");
@@ -40,8 +40,8 @@ const redirectToEsewa = async (orderId, total) => {
     product_code: productCode,
     product_service_charge: "0",
     product_delivery_charge: "0",
-    success_url: `${appUrl}/payment-success`,
-    failure_url: `${appUrl}/payment-failed`,
+    success_url: `${appUrl}/payment-success`, // ✅ fixed
+    failure_url: `${appUrl}/payment-failed`,  // ✅ fixed
     signed_field_names: "total_amount,transaction_uuid,product_code",
     signature,
   };
@@ -143,8 +143,9 @@ export default function Checkout() {
   const { user } = useSelector((state) => state.userSlice);
   const [createCheckout, { isLoading }] = useCreateCheckoutMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [savedInfoCleared, setSavedInfoCleared] = useState(false); // ✅ new state
 
-  const savedInfo = loadBillingInfo();
+  const savedInfo = !savedInfoCleared ? loadBillingInfo() : null; // ✅ fixed
   const initialValues = savedInfo ? { ...defaultValues, ...savedInfo } : defaultValues;
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -198,7 +199,10 @@ export default function Checkout() {
             <h1 className="text-3xl font-bold tracking-tight font-serif">Billing details</h1>
             {savedInfo && (
               <button type="button"
-                onClick={() => { localStorage.removeItem(STORAGE_KEY); window.location.reload(); }}
+                onClick={() => {
+                  localStorage.removeItem(STORAGE_KEY);
+                  setSavedInfoCleared(true); // ✅ fixed: no window.location.reload()
+                }}
                 className="text-xs text-gray-400 underline hover:text-red-500 transition-colors">
                 Clear saved info
               </button>
