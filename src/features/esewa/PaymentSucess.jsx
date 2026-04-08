@@ -14,7 +14,6 @@ export default function PaymentSuccess() {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("verifying");
 
-
   useEffect(() => {
     const verify = async () => {
       const data = searchParams.get("data");
@@ -37,6 +36,7 @@ export default function PaymentSuccess() {
         const result = await res.json();
 
         if (res.ok && result.order) {
+
           dispatch(setOrderSuccess({ orderId: result.order._id, orderDetails: result.order }));
           dispatch(clearCart());
           localStorage.removeItem(STORAGE_KEY);
