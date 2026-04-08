@@ -16,12 +16,6 @@ export default function PaymentSuccess() {
 
 
   useEffect(() => {
-    return () => {
-      dispatch(clearOrder());
-    };
-  }, []);
-
-  useEffect(() => {
     const verify = async () => {
       const data = searchParams.get("data");
 
@@ -74,7 +68,7 @@ export default function PaymentSuccess() {
         <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-4xl">✕</div>
         <h1 className="text-3xl font-bold font-serif text-gray-900">Verification Failed</h1>
         <p className="text-gray-500 text-sm">We couldn't verify your payment. Please contact support.</p>
-        <button onClick={() => nav("/checkout")}
+        <button onClick={() => { dispatch(clearOrder()); nav("/checkout"); }}
           className="mt-4 border border-gray-800 text-gray-800 px-8 py-3 rounded hover:bg-gray-800 hover:text-white transition-colors text-sm">
           Try Again
         </button>
@@ -87,7 +81,7 @@ export default function PaymentSuccess() {
       <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl">✓</div>
       <h1 className="text-3xl font-bold font-serif text-gray-900">Payment Successful!</h1>
       <p className="text-gray-500 text-sm">Your order has been placed and payment confirmed.</p>
-      <button onClick={() => nav("/shop")}
+      <button onClick={() => { dispatch(clearOrder()); nav("/checkout"); }}
         className="mt-4 border border-gray-800 text-gray-800 px-8 py-3 rounded hover:bg-gray-800 hover:text-white transition-colors text-sm">
         Continue Shopping
       </button>
