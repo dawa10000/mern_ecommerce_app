@@ -163,7 +163,7 @@ export default function PlaceOrder() {
           </Button>
 
           <Button
-            onClick={() => nav('/')}
+            onClick={() => nav('/shop')}
             variant="ghost"
             className="w-full mt-2 text-sm text-gray-500"
           >

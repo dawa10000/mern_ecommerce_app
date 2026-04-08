@@ -76,7 +76,7 @@ export default function OrderPage() {
         <OrderHero />
         <div className="min-h-screen flex items-center justify-center flex-col gap-3">
           <p className="text-gray-400 text-lg">No orders found.</p>
-          <a href="/" className="text-sm underline text-gray-600 hover:text-black">
+          <a href="/shop" className="text-sm underline text-gray-600 hover:text-black">
             Continue Shopping
           </a>
         </div>

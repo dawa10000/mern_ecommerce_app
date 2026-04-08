@@ -87,7 +87,7 @@ export default function PaymentSuccess() {
       <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl">✓</div>
       <h1 className="text-3xl font-bold font-serif text-gray-900">Payment Successful!</h1>
       <p className="text-gray-500 text-sm">Your order has been placed and payment confirmed.</p>
-      <button onClick={() => nav("/")}
+      <button onClick={() => nav("/shop")}
         className="mt-4 border border-gray-800 text-gray-800 px-8 py-3 rounded hover:bg-gray-800 hover:text-white transition-colors text-sm">
         Continue Shopping
       </button>

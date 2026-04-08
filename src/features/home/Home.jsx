@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Top5Products from "../product/Top5Products.jsx";
+import { useNavigate } from "react-router";
 
 
 // --- Real Image URLs from Unsplash ---
@@ -28,6 +29,7 @@ const blogs = [
 
 // --- Hero ---
 function Hero() {
+  const nav = useNavigate();
   return (
     <section style={{ background: "#FBF3E3", overflow: "hidden", position: "relative", minHeight: 520 }}>
       {/* Decorative circle */}
@@ -49,12 +51,12 @@ function Hero() {
               Timeless craftsmanship meets modern comfort. Elevate your space with furniture that tells a story.
             </p>
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-              <button style={{ background: "#B8860B", color: "white", border: "none", borderRadius: 4, padding: "14px 32px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.875rem", letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(184,134,11,0.3)" }}
+              <button onClick={() => nav('/shop')} style={{ background: "#B8860B", color: "white", border: "none", borderRadius: 4, padding: "14px 32px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.875rem", letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(184,134,11,0.3)" }}
                 onMouseEnter={e => { e.target.style.background = "#9A6E08"; e.target.style.transform = "translateY(-1px)"; }}
                 onMouseLeave={e => { e.target.style.background = "#B8860B"; e.target.style.transform = "translateY(0)"; }}>
                 Shop Now
               </button>
-              <button style={{ background: "transparent", color: "#1A1209", border: "2px solid #E8DCC8", borderRadius: 4, padding: "14px 32px", fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", transition: "all 0.2s" }}
+              <button onClick={() => nav('/shop')} style={{ background: "transparent", color: "#1A1209", border: "2px solid #E8DCC8", borderRadius: 4, padding: "14px 32px", fontFamily: "'DM Sans', sans-serif", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", transition: "all 0.2s" }}
                 onMouseEnter={e => { e.target.style.borderColor = "#B8860B"; e.target.style.color = "#B8860B"; }}
                 onMouseLeave={e => { e.target.style.borderColor = "#E8DCC8"; e.target.style.color = "#1A1209"; }}>
                 Explore All
@@ -198,6 +200,7 @@ function InstagramSection() {
 
 
 export default function FurnitureHomepage() {
+
   return (
     <div>
 
