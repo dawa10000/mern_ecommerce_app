@@ -2,7 +2,7 @@
 import Checkout from "../models/Checkout.js";
 import Product from "../models/Product.js";
 import crypto from 'crypto';
-import { sendOrderReceivedAdmin, sendOrderStatusUpdate } from "../utlis/mailer.js";
+import { sendOrderConfirmedCustomer, sendOrderReceivedAdmin, sendOrderStatusUpdate } from "../utlis/mailer.js";
 
 
 export const createCheckout = async (req, res) => {
@@ -39,6 +39,10 @@ export const createCheckout = async (req, res) => {
     });
 
     sendOrderReceivedAdmin(order).catch((err) => {
+      console.error("Mailer error (non-fatal):", err.message);
+    });
+
+    sendOrderConfirmedCustomer(order).catch((err) => {
       console.error("Mailer error (non-fatal):", err.message);
     });
 
@@ -163,7 +167,14 @@ export const verifyEsewa = async (req, res) => {
     sendOrderReceivedAdmin(order).catch((err) => {
       console.error("Mailer error (non-fatal):", err.message);
     });
+
+    sendOrderConfirmedCustomer(order).catch((err) => {
+      console.error("Mailer error (non-fatal):", err.message);
+    });
+
     return res.redirect(`${process.env.FRONTEND_URL}/payment-success?order=${order._id}`);
+
+
 
   } catch (err) {
     console.log("eSewa verify error:", err.message);
