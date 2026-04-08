@@ -85,10 +85,6 @@ export default function App() {
               element: <ProductEditForm />
             },
             {
-              path: "profile",
-              element: <UserProfile />
-            },
-            {
               path: 'all-orders',
               element: <AdminAllordersPage />
             },
