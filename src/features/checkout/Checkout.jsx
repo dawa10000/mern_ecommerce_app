@@ -26,7 +26,7 @@ const redirectToEsewa = async (orderId, total) => {
 
   const { signature, productCode, amount } = await res.json();
 
-  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin; // ✅ fixed
+  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
 
   const form = document.createElement("form");
   form.setAttribute("method", "POST");
@@ -40,8 +40,8 @@ const redirectToEsewa = async (orderId, total) => {
     product_code: productCode,
     product_service_charge: "0",
     product_delivery_charge: "0",
-    success_url: `${appUrl}/payment-success`, // ✅ fixed
-    failure_url: `${appUrl}/payment-failed`,  // ✅ fixed
+    success_url: `${appUrl}/payment-success`,
+    failure_url: `${appUrl}/payment-failed`,
     signed_field_names: "total_amount,transaction_uuid,product_code",
     signature,
   };
@@ -143,9 +143,9 @@ export default function Checkout() {
   const { user } = useSelector((state) => state.userSlice);
   const [createCheckout, { isLoading }] = useCreateCheckoutMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [savedInfoCleared, setSavedInfoCleared] = useState(false); // ✅ new state
+  const [savedInfoCleared, setSavedInfoCleared] = useState(false);
 
-  const savedInfo = !savedInfoCleared ? loadBillingInfo() : null; // ✅ fixed
+  const savedInfo = !savedInfoCleared ? loadBillingInfo() : null;
   const initialValues = savedInfo ? { ...defaultValues, ...savedInfo } : defaultValues;
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -170,12 +170,14 @@ export default function Checkout() {
 
     try {
       const res = await createCheckout({ body, token: user?.token }).unwrap();
-      dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
       setDialogOpen(false);
 
       if (values.paymentMethod === "eSewa") {
+
         await redirectToEsewa(res.order._id, total);
       } else {
+
+        dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
         localStorage.removeItem(STORAGE_KEY);
         dispatch(clearCart());
         toast.success("Order placed successfully!");
@@ -189,7 +191,6 @@ export default function Checkout() {
       setDialogOpen(false);
     }
   };
-
   return (
     <div>
       <CheckoutHero />
@@ -201,7 +202,7 @@ export default function Checkout() {
               <button type="button"
                 onClick={() => {
                   localStorage.removeItem(STORAGE_KEY);
-                  setSavedInfoCleared(true); // ✅ fixed: no window.location.reload()
+                  setSavedInfoCleared(true);
                 }}
                 className="text-xs text-gray-400 underline hover:text-red-500 transition-colors">
                 Clear saved info
