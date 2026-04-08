@@ -20,7 +20,7 @@ export default function PlaceOrder() {
         <ShoppingCartIcon className="w-16 h-16 text-gray-300" />
         <h2 className="text-2xl font-semibold text-gray-700">Your cart is empty</h2>
         <p className="text-gray-400 text-sm">Add some products to continue shopping</p>
-        <Button onClick={() => nav("/")} variant="outline">
+        <Button onClick={() => nav("/shop")} variant="outline">
           Continue Shopping
         </Button>
       </div>
