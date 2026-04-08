@@ -240,7 +240,7 @@ export default function AllOrdersPage() {
                         year: "numeric",
                       })}
                     </p>
-                    {/* ── Status updater (admin only) ── */}
+
                     <StatusSelect
                       orderId={order._id}
                       currentStatus={order.status}

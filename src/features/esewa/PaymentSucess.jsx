@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams, useNavigate } from "react-router";
 import { clearCart } from "../carts/cartSlice.js";
-import { setOrderSuccess } from "../checkout/checkoutSlice.js";
+import { setOrderSuccess, clearOrder } from "../checkout/checkoutSlice.js";
 import { toast } from "sonner";
 import { STORAGE_KEY } from "../checkout/Checkout.jsx";
 import { baseUrl } from "../../app/mainApi.js";
@@ -12,11 +12,18 @@ export default function PaymentSuccess() {
   const nav = useNavigate();
   const { user } = useSelector((state) => state.userSlice);
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState("verifying"); // "verifying" | "success" | "failed"
+  const [status, setStatus] = useState("verifying");
+
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearOrder());
+    };
+  }, []);
 
   useEffect(() => {
     const verify = async () => {
-      const data = searchParams.get("data"); // eSewa sends base64 encoded data param
+      const data = searchParams.get("data");
 
       if (!data) {
         setStatus("failed");
@@ -36,7 +43,6 @@ export default function PaymentSuccess() {
         const result = await res.json();
 
         if (res.ok && result.order) {
-          // ✅ Payment confirmed — now dispatch and clear
           dispatch(setOrderSuccess({ orderId: result.order._id, orderDetails: result.order }));
           dispatch(clearCart());
           localStorage.removeItem(STORAGE_KEY);

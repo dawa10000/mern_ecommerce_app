@@ -1,8 +1,18 @@
-// pages/PaymentFailed.jsx
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
+import { clearOrder } from "../checkout/checkoutSlice.js";
 
 export default function PaymentFailed() {
   const nav = useNavigate();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearOrder());
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-center px-6">
       <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-4xl">✕</div>
