@@ -51,7 +51,8 @@ export const createCheckout = async (req, res) => {
 
     return res.status(201).json({
       message: "Order placed successfully",
-      order
+      order,
+      mailError,
     });
 
   } catch (err) {
