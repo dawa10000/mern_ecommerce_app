@@ -12,8 +12,8 @@ const initTransporter = async () => {
 
   transporter = nodemailer.createTransport({
     host: smtpIp,
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -22,8 +22,8 @@ const initTransporter = async () => {
       rejectUnauthorized: false,
       servername: 'smtp.gmail.com',
     },
-    connectionTimeout: 10000,
-    socketTimeout: 10000,
+    connectionTimeout: 15000,
+    socketTimeout: 15000,
   });
 
   await transporter.verify();
