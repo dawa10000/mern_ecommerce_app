@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer';
+import User from '../models/User.js';
 import dns from 'dns';
 
 const transporter = nodemailer.createTransport({
