@@ -14,6 +14,7 @@ export const createCheckout = async (req, res) => {
   } = req.body;
 
   try {
+
     for (const item of products) {
       const product = await Product.findById(item.product);
       if (!product) {
@@ -24,14 +25,18 @@ export const createCheckout = async (req, res) => {
       }
     }
 
-
     const order = await Checkout.create({
       user: req.userId,
       firstName, lastName, companyName,
       country, street, city, province, zip,
       phone, email, additionalInfo,
-      paymentMethod, products, subtotal, total
+      paymentMethod, products, subtotal, total,
+      status: paymentMethod === "eSewa" ? "pending" : "processing",
+      paymentStatus: paymentMethod === "eSewa" ? "unpaid" : "pending",
     });
+
+
+    let mailError = null;
 
     if (paymentMethod !== "eSewa") {
       for (const item of products) {
@@ -39,14 +44,13 @@ export const createCheckout = async (req, res) => {
           $inc: { stock: -item.quantity }
         });
       }
-
-      sendOrderReceivedAdmin(order).catch((err) => {
-        console.error("Mailer error (non-fatal):", err.message);
-      });
-
-      sendOrderConfirmedCustomer(order).catch((err) => {
-        console.error("Mailer error (non-fatal):", err.message);
-      });
+      try {
+        await sendOrderReceivedAdmin(order);
+        await sendOrderConfirmedCustomer(order);
+      } catch (err) {
+        console.error("Mailer error:", err.message);
+        mailError = err.message;
+      }
     }
 
     return res.status(201).json({
