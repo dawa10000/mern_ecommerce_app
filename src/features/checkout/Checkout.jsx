@@ -175,7 +175,11 @@ export default function Checkout() {
         dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
         localStorage.removeItem(STORAGE_KEY);
         dispatch(clearCart());
-        toast.success("Order placed successfully!");
+        if (res.mailError) {
+          toast.warning(`Order placed but email failed: ${res.mailError}`);
+        } else {
+          toast.success("Order placed successfully!");
+        }
         nav("/shop");
       }
     } catch (err) {
