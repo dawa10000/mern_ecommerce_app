@@ -1,3 +1,5 @@
+import { setDefaultResultOrder } from "dns";
+setDefaultResultOrder("ipv4first");
 
 import { setServers } from "node:dns/promises";
 setServers(["1.1.1.1", "8.8.8.8"]);
@@ -37,6 +39,7 @@ app.use(fileUpload({
   useTempFiles: false,
   limits: { fileSize: 5 * 1024 * 1024 },
 }));
+
 
 app.get("/", (req, res) => res.status(200).json({ message: "Welcome to backend" }));
 app.use("/api/products", productRoutes);
