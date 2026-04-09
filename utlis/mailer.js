@@ -1,20 +1,19 @@
-import * as Brevo from '@getbrevo/brevo';
+import nodemailer from 'nodemailer';
 import User from '../models/User.js';
+import dns from 'dns';
 
-const apiInstance = new Brevo.TransactionalEmailsApi();
-apiInstance.authentications['apiKey'].apiKey = process.env.BREVO_API_KEY;
-
-const sendMail = async ({ to, subject, html }) => {
-  const email = new Brevo.SendSmtpEmail();
-  email.sender = { name: "Shop", email: process.env.EMAIL_USER };
-  email.to = [{ email: to }];
-  email.subject = subject;
-  email.htmlContent = html;
-  await apiInstance.sendTransacEmail(email);
-};
+dns.setDefaultResultOrder('ipv4first');
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 export const sendOrderConfirmedCustomer = async (order) => {
-  await sendMail({
+  await transporter.sendMail({
+    from: `"Shop" <${process.env.EMAIL_USER}>`,
     to: order.email,
     subject: `✅ Order Confirmed - #${order._id}`,
     html: `
@@ -32,18 +31,22 @@ export const sendOrderConfirmedCustomer = async (order) => {
             <p style="margin: 4px 0;"><b>Total:</b> Rs. ${order.total}</p>
             <p style="margin: 4px 0;"><b>Shipping To:</b> ${order.street}, ${order.city}, ${order.province}, ${order.zip}</p>
           </div>
-          <p style="color: #6b7280; font-size: 14px;">We'll notify you when your order status changes. Thank you for shopping with us! 🎉</p>
+          <p style="color: #6b7280; font-size: 14px;">
+            We'll notify you when your order status changes. Thank you for shopping with us! 🎉
+          </p>
         </div>
       </div>
     `,
   });
 };
 
+
 export const sendOrderReceivedAdmin = async (order) => {
   const admin = await User.findOne({ role: 'admin' });
   if (!admin) return console.warn("No admin found to notify");
 
-  await sendMail({
+  await transporter.sendMail({
+    from: `"Shop" <${process.env.EMAIL_USER}>`,
     to: admin.email,
     subject: `🛒 New Order Received - #${order._id}`,
     html: `
@@ -60,38 +63,70 @@ export const sendOrderReceivedAdmin = async (order) => {
   });
 };
 
+
 const statusConfig = {
-  pending: { subject: 'Order Received', message: 'We have received your order and it is pending confirmation.', color: '#f59e0b' },
-  processing: { subject: 'Order is Being Processed', message: 'Great news! Your order is currently being processed.', color: '#3b82f6' },
-  shipped: { subject: 'Order Shipped', message: 'Your order is on its way! It has been shipped and will arrive soon.', color: '#8b5cf6' },
-  delivered: { subject: 'Order Delivered', message: 'Your order has been delivered. We hope you enjoy your purchase!', color: '#10b981' },
-  cancelled: { subject: 'Order Cancelled', message: 'Your order has been cancelled. Contact us if you have any questions.', color: '#ef4444' },
+  pending: {
+    subject: 'Order Received',
+    message: 'We have received your order and it is pending confirmation.',
+    color: '#f59e0b',
+  },
+  processing: {
+    subject: 'Order is Being Processed',
+    message: 'Great news! Your order is currently being processed.',
+    color: '#3b82f6',
+  },
+  shipped: {
+    subject: 'Order Shipped',
+    message: 'Your order is on its way! It has been shipped and will arrive soon.',
+    color: '#8b5cf6',
+  },
+  delivered: {
+    subject: 'Order Delivered',
+    message: 'Your order has been delivered. We hope you enjoy your purchase!',
+    color: '#10b981',
+  },
+  cancelled: {
+    subject: 'Order Cancelled',
+    message: 'Your order has been cancelled. Contact us if you have any questions.',
+    color: '#ef4444',
+  },
 };
+
 
 export const sendOrderStatusUpdate = async (order) => {
   const config = statusConfig[order.status];
   if (!config) return;
 
-  await sendMail({
+  await transporter.sendMail({
+    from: `"Shop" <${process.env.EMAIL_USER}>`,
     to: order.email,
     subject: `${config.subject} - Order #${order._id}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: ${config.color}; padding: 20px; border-radius: 8px 8px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px;">${config.subject}</h1>
+          <h1 style="color: white; margin: 0; font-size: 24px;">
+             ${config.subject}
+          </h1>
         </div>
         <div style="padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
           <p>Hi <b>${order.firstName} ${order.lastName}</b>,</p>
           <p>${config.message}</p>
           <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0;">
             <p style="margin: 4px 0;"><b>Order ID:</b> ${order._id}</p>
-            <p style="margin: 4px 0;"><b>Status:</b> <span style="color: ${config.color}; font-weight: bold; text-transform: uppercase;">${order.status}</span></p>
+            <p style="margin: 4px 0;"><b>Status:</b> 
+              <span style="color: ${config.color}; font-weight: bold; text-transform: uppercase;">
+                ${order.status}
+              </span>
+            </p>
             <p style="margin: 4px 0;"><b>Total:</b> Rs. ${order.total}</p>
             <p style="margin: 4px 0;"><b>Payment:</b> ${order.paymentMethod}</p>
           </div>
-          <p style="color: #6b7280; font-size: 14px;">Thank you for shopping with us! 🎉</p>
+          <p style="color: #6b7280; font-size: 14px;">
+            Thank you for shopping with us! 🎉
+          </p>
         </div>
       </div>
     `,
   });
 };
+
