@@ -16,7 +16,6 @@ import { baseUrl } from "../../app/mainApi.js";
 
 export const STORAGE_KEY = "checkout_billing_info";
 
-
 const redirectToEsewa = async (orderId, total) => {
   const res = await fetch(`${baseUrl}/checkout/esewa-signature`, {
     method: "POST",
@@ -25,8 +24,6 @@ const redirectToEsewa = async (orderId, total) => {
   });
 
   const { signature, productCode, amount } = await res.json();
-
-
 
   const form = document.createElement("form");
   form.setAttribute("method", "POST");
@@ -77,7 +74,7 @@ function CheckoutHero() {
 const provinces = [
   "Western Province", "Central Province", "Southern Province",
   "Northern Province", "Eastern Province", "North Western Province",
-  "North Central Province", "Uva Province", "Sabaragamuwa Province"
+  "North Central Province", "Uva Province", "Sabaragamuwa Province",
 ];
 const countries = ["Sri Lanka", "India", "Maldives", "Nepal", "Bangladesh"];
 
@@ -173,24 +170,21 @@ export default function Checkout() {
       setDialogOpen(false);
 
       if (values.paymentMethod === "eSewa") {
-
         await redirectToEsewa(res.order._id, total);
       } else {
-
         dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
         localStorage.removeItem(STORAGE_KEY);
         dispatch(clearCart());
         toast.success("Order placed successfully!");
         nav("/shop");
       }
-
     } catch (err) {
-      setDialogOpen(false);
       toast.error(err?.data?.message || "Something went wrong");
     } finally {
       setDialogOpen(false);
     }
   };
+
   return (
     <div>
       <CheckoutHero />
@@ -217,13 +211,18 @@ export default function Checkout() {
             </div>
           )}
 
-          <Formik initialValues={initialValues} validationSchema={checkoutSchema}
-            onSubmit={handleSubmit} enableReinitialize>
-            {({ values, setFieldValue, validateForm, setTouched }) => (
+          <Formik
+            initialValues={initialValues}
+            validationSchema={checkoutSchema}
+            onSubmit={handleSubmit}
+            enableReinitialize
+          >
+            {({ values, validateForm, setTouched }) => (
               <Form>
                 <AutoSave />
                 <div className="flex flex-col lg:flex-row gap-16">
 
+                  {/* Left: Billing Fields */}
                   <div className="flex-1 space-y-6">
                     <div className="flex gap-4">
                       <div className="flex-1"><FormField label="First Name" name="firstName" /></div>
@@ -267,6 +266,7 @@ export default function Checkout() {
                     </div>
                   </div>
 
+                  {/* Right: Order Summary + Payment */}
                   <div className="w-full lg:w-80 space-y-4">
                     <div>
                       <div className="flex justify-between text-sm font-semibold mb-3 border-b pb-2">
@@ -292,12 +292,9 @@ export default function Checkout() {
                     <div className="border-t pt-4 space-y-3">
                       <p className="text-sm font-semibold text-gray-800">Payment Method</p>
 
+                      {/* eSewa Radio — using Formik Field */}
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "eSewa" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
-                        <input type="radio" name="paymentMethod" value="eSewa"
-                          checked={values.paymentMethod === "eSewa"}
-                          onChange={() => setFieldValue("paymentMethod", "eSewa")}
-                          className="accent-green-600"
-                        />
+                        <Field type="radio" name="paymentMethod" value="eSewa" className="accent-green-600" />
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
                             <span className="text-white text-xs font-black">e</span>
@@ -309,12 +306,9 @@ export default function Checkout() {
                         </div>
                       </label>
 
+                      {/* Cash On Delivery Radio — using Formik Field */}
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "Cash On Delivery" ? "border-gray-800 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}>
-                        <input type="radio" name="paymentMethod" value="Cash On Delivery"
-                          checked={values.paymentMethod === "Cash On Delivery"}
-                          onChange={() => setFieldValue("paymentMethod", "Cash On Delivery")}
-                          className="accent-gray-700"
-                        />
+                        <Field type="radio" name="paymentMethod" value="Cash On Delivery" className="accent-gray-700" />
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
                             <span className="text-white text-xs">💵</span>
