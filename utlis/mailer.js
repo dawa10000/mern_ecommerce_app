@@ -10,24 +10,12 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
+  family: 4,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
-
-  socketTimeout: 10000,
-  connectionTimeout: 10000,
-  dnsTimeout: 10000,
-  logger: false,
-  transactionLog: false,
-  socket: undefined,
-  localAddress: "0.0.0.0",
 });
-
-
 
 export const sendOrderConfirmedCustomer = async (order) => {
   await transporter.sendMail({
