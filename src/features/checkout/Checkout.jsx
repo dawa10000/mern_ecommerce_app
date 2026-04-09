@@ -26,7 +26,7 @@ const redirectToEsewa = async (orderId, total) => {
 
   const { signature, productCode, amount } = await res.json();
 
-  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+
 
   const form = document.createElement("form");
   form.setAttribute("method", "POST");
@@ -40,8 +40,8 @@ const redirectToEsewa = async (orderId, total) => {
     product_code: productCode,
     product_service_charge: "0",
     product_delivery_charge: "0",
-    success_url: `${appUrl}/payment-success`,
-    failure_url: `${appUrl}/payment-failed`,
+    success_url: `${baseUrl}/checkout/verify-esewa`,
+    failure_url: `${baseUrl}/checkout/verify-esewa`,
     signed_field_names: "total_amount,transaction_uuid,product_code",
     signature,
   };
