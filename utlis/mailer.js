@@ -1,25 +1,49 @@
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first');
-
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
+import { promises as dns } from 'dns';
+
+let transporter = null;
+
+const initTransporter = async () => {
+  try {
+
+    const [smtpIp] = await dns.resolve4('smtp.gmail.com');
+    console.log(`Resolved smtp.gmail.com to IPv4: ${smtpIp}`);
+
+    transporter = nodemailer.createTransport({
+      host: smtpIp,
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+        servername: 'smtp.gmail.com',
+      },
+      connectionTimeout: 10000,
+      socketTimeout: 10000,
+    });
+
+    await transporter.verify();
+    console.log("Mailer ready ✓");
+  } catch (err) {
+    console.error("Mailer init error:", err.message);
+    transporter = null;
+  }
+};
 
 
+initTransporter();
 
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const getTransporter = () => {
+  if (!transporter) throw new Error("Mailer not initialized — check EMAIL_USER and EMAIL_PASS in Render env vars");
+  return transporter;
+};
 
 export const sendOrderConfirmedCustomer = async (order) => {
-  await transporter.sendMail({
+  await getTransporter().sendMail({
     from: `"Shop" <${process.env.EMAIL_USER}>`,
     to: order.email,
     subject: `✅ Order Confirmed - #${order._id}`,
@@ -47,12 +71,11 @@ export const sendOrderConfirmedCustomer = async (order) => {
   });
 };
 
-
 export const sendOrderReceivedAdmin = async (order) => {
   const admin = await User.findOne({ role: 'admin' });
   if (!admin) return console.warn("No admin found to notify");
 
-  await transporter.sendMail({
+  await getTransporter().sendMail({
     from: `"Shop" <${process.env.EMAIL_USER}>`,
     to: admin.email,
     subject: `🛒 New Order Received - #${order._id}`,
@@ -69,7 +92,6 @@ export const sendOrderReceivedAdmin = async (order) => {
     `,
   });
 };
-
 
 const statusConfig = {
   pending: {
@@ -99,12 +121,11 @@ const statusConfig = {
   },
 };
 
-
 export const sendOrderStatusUpdate = async (order) => {
   const config = statusConfig[order.status];
   if (!config) return;
 
-  await transporter.sendMail({
+  await getTransporter().sendMail({
     from: `"Shop" <${process.env.EMAIL_USER}>`,
     to: order.email,
     subject: `${config.subject} - Order #${order._id}`,
@@ -112,7 +133,7 @@ export const sendOrderStatusUpdate = async (order) => {
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: ${config.color}; padding: 20px; border-radius: 8px 8px 0 0;">
           <h1 style="color: white; margin: 0; font-size: 24px;">
-             ${config.subject}
+            ${config.subject}
           </h1>
         </div>
         <div style="padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
@@ -120,7 +141,7 @@ export const sendOrderStatusUpdate = async (order) => {
           <p>${config.message}</p>
           <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0;">
             <p style="margin: 4px 0;"><b>Order ID:</b> ${order._id}</p>
-            <p style="margin: 4px 0;"><b>Status:</b> 
+            <p style="margin: 4px 0;"><b>Status:</b>
               <span style="color: ${config.color}; font-weight: bold; text-transform: uppercase;">
                 ${order.status}
               </span>
@@ -136,4 +157,3 @@ export const sendOrderStatusUpdate = async (order) => {
     `,
   });
 };
-
