@@ -14,6 +14,14 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("Mailer config error:", error.message);
+  } else {
+    console.log("Mailer ready ✓");
+  }
+});
+
 export const sendOrderConfirmedCustomer = async (order) => {
   await transporter.sendMail({
     from: `"Shop" <${process.env.EMAIL_USER}>`,
