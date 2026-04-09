@@ -1,18 +1,22 @@
-import nodemailer from 'nodemailer';
-import User from '../models/User.js';
-
-
+import dns from 'dns';
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",   // explicit host instead of service: "gmail"
+  host: "smtp.gmail.com",
   port: 587,
-  secure: false,            // true for 465, false for 587
-  family: 4,                // 👈 force IPv4
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   connectionTimeout: 10000,
+  dnsOptions: { family: 4 },   // nodemailer v6+ option
+  // 👇 This is the key — force dns.lookup to only return IPv4
+  resolve: (host, callback) => {
+    dns.resolve4(host, (err, addresses) => {
+      if (err) return callback(err);
+      callback(null, addresses[0], 4);
+    });
+  },
 });
 
 transporter.verify((err, success) => {
