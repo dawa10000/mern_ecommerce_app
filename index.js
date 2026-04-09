@@ -1,4 +1,6 @@
+import { setServers } from "node:dns/promises";
 
+setServers(["1.1.1.1", "8.8.8.8"]);
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -19,7 +21,7 @@ const app = express();
 
 app.use(cors({
   credentials: true,
-  origin: ["https://mern-ecommerce-app-xi.vercel.app"],
+  origin: ["http://localhost:5173", "https://mern-ecommerce-app-xi.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
