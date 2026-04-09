@@ -4,20 +4,22 @@ import { setDefaultResultOrder } from 'dns';
 
 setDefaultResultOrder('ipv4first');
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  socketTimeout: 10000,
+  connectionTimeout: 10000,
+  localAddress: "0.0.0.0",
 });
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("Mailer config error:", error.message);
-  } else {
-    console.log("Mailer ready ✓");
-  }
-});
+
 
 export const sendOrderConfirmedCustomer = async (order) => {
   await transporter.sendMail({
