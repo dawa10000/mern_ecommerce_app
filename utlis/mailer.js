@@ -1,8 +1,8 @@
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
+import { setDefaultResultOrder } from 'dns';
 
-
-
+setDefaultResultOrder('ipv4first');
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
