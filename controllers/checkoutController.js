@@ -166,7 +166,7 @@ export const verifyEsewa = async (req, res) => {
 
     const order = await Checkout.findByIdAndUpdate(
       transaction_uuid,
-      { status: "processing", paymentStatus: "paid", transaction_code },
+      { status: "pending", paymentStatus: "paid", transaction_code },
       { returnDocument: 'after' }
     );
 
