@@ -23,7 +23,13 @@ const redirectToEsewa = async (orderId, total) => {
     body: JSON.stringify({ total, orderId }),
   });
 
-  const { signature, productCode, amount } = await res.json();
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "eSewa signature failed");
+  }
+
+  const { signature, productCode, amount } = data;
 
   const form = document.createElement("form");
   form.setAttribute("method", "POST");
@@ -72,7 +78,7 @@ function CheckoutHero() {
 }
 
 const provinces = [
-  'Koshi', 'Madhesh', 'Bagmati', 'Gandaki', 'Lumbini', 'Karnali', 'Sudurpashchim'
+  "Bagmati", "Koshi", "Madhesh", "Gandaki", "Lumbini", "Karnali", "Sudurpashchim"
 ];
 const countries = ["Nepal", "India"];
 
@@ -187,7 +193,8 @@ export default function Checkout() {
       nav("/shop");
 
     } catch (err) {
-      toast.error(err?.data?.message || "Something went wrong");
+      console.log("Checkout ERROR:", err);
+      toast.error(err?.data?.message || err?.message || "Something went wrong");
     }
   };
   return (
@@ -265,7 +272,7 @@ export default function Checkout() {
                     <FormField label="Email address" name="email" type="email" />
 
                     <div>
-                      <Field as="textarea" name="additionalInfo" placeholder="Additional information" rows={3}
+                      <Field as="textarea" name="additionalInfo" placeholder="Additional information (Optional)" rows={3}
                         className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 placeholder-gray-400 resize-none"
                       />
                     </div>
@@ -302,12 +309,7 @@ export default function Checkout() {
                         ? "border-green-500 bg-green-50"
                         : "border-gray-200"
                         }`}>
-                        <Field
-                          type="radio"
-                          name="paymentMethod"
-                          value="eSewa"
-                          checked={values.paymentMethod === "eSewa"} // ✅ FIX
-                        />
+                        <Field type="radio" name="paymentMethod" value="eSewa" />
                         <span>eSewa</span>
                       </label>
 
@@ -342,7 +344,15 @@ export default function Checkout() {
                       </p>
 
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={async () => {
+                          const errors = await validateForm();
+                          if (Object.keys(errors).length > 0) {
+                            setTouched(errors);
+                            return;
+                          }
+                          setDialogOpen(true); // 👈 open dialog
+                        }}
                         disabled={isLoading || cart.length === 0}
                         className="w-full border border-gray-800 text-sm py-3 rounded"
                       >
