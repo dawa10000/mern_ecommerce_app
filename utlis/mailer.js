@@ -18,6 +18,17 @@ const transporter = nodemailer.createTransport({
   connectionTimeout: 10000,
 });
 
+
+// service: "gmail",
+//   family: 4,
+//   secure: false,
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+//   tls: { rejectUnauthorized: false },
+//   connectionTimeout: 10000,
+// });
 export const sendOrderConfirmedCustomer = async (order) => {
   await transporter.sendMail({
     from: `"Shop" <${process.env.EMAIL_USER}>`,
