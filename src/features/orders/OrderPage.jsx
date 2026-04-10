@@ -1,5 +1,12 @@
+import { useState } from "react";
 import { useSelector } from "react-redux";
-import { useGetMyOrdersQuery } from "./orderApi.js";
+import { toast } from "sonner";
+import { useGetMyOrdersQuery, useCancelOrderMutation } from "./orderApi.js";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function OrderHero() {
   return (
@@ -28,7 +35,6 @@ function OrderHero() {
   );
 }
 
-
 function StatusBadge({ status }) {
   const colors = {
     pending: "bg-yellow-100 text-yellow-700",
@@ -44,18 +50,33 @@ function StatusBadge({ status }) {
   );
 }
 
+const NON_CANCELLABLE = ["shipped", "delivered", "cancelled"];
+
 export default function OrderPage() {
   const { user } = useSelector((state) => state.userSlice);
   const { data: orders = [], isLoading, error } = useGetMyOrdersQuery(user?.token);
+  const [cancelOrder, { isLoading: isCancelling }] = useCancelOrderMutation();
+
+
+  const [confirmOrderId, setConfirmOrderId] = useState(null);
+
+  const handleConfirmCancel = async () => {
+    try {
+      await cancelOrder({ id: confirmOrderId, token: user?.token }).unwrap();
+      toast.success("Order cancelled successfully");
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to cancel order");
+    } finally {
+      setConfirmOrderId(null);
+    }
+  };
 
   if (isLoading)
     return (
       <>
         <OrderHero />
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-lg font-semibold animate-pulse text-gray-500">
-            Loading orders...
-          </p>
+          <p className="text-lg font-semibold animate-pulse text-gray-500">Loading orders...</p>
         </div>
       </>
     );
@@ -94,105 +115,120 @@ export default function OrderPage() {
           </h2>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {orders.map((order) => (
-              <div
-                key={order._id}
-                className="bg-white rounded-2xl shadow-sm border p-5 hover:shadow-md transition"
-              >
+            {orders.map((order) => {
+              const canCancel = !NON_CANCELLABLE.includes(order.status);
 
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm text-gray-500">Order ID</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded-md font-mono">
-                      #{order._id.slice(-6).toUpperCase()}
-                    </span>
-                    <StatusBadge status={order.status} />
+              return (
+                <div
+                  key={order._id}
+                  className="bg-white rounded-2xl shadow-sm border p-5 hover:shadow-md transition flex flex-col"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-gray-500">Order ID</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded-md font-mono">
+                        #{order._id.slice(-6).toUpperCase()}
+                      </span>
+                      <StatusBadge status={order.status} />
+                    </div>
                   </div>
-                </div>
 
+                  {/* Billing Info */}
+                  <div className="bg-gray-50 rounded-xl p-3 mb-4 text-xs text-gray-600 space-y-1">
+                    <p><span className="font-semibold text-gray-800">Name: </span>{order.firstName} {order.lastName}</p>
+                    <p><span className="font-semibold text-gray-800">Email: </span>{order.email}</p>
+                    <p><span className="font-semibold text-gray-800">Phone: </span>{order.phone}</p>
+                    <p><span className="font-semibold text-gray-800">Address: </span>{order.street}, {order.city}, {order.province} {order.zip}</p>
+                    <p><span className="font-semibold text-gray-800">Payment: </span>{order.paymentMethod}</p>
+                  </div>
 
-                <div className="bg-gray-50 rounded-xl p-3 mb-4 text-xs text-gray-600 space-y-1">
-                  <p>
-                    <span className="font-semibold text-gray-800">Name: </span>
-                    {order.firstName} {order.lastName}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-gray-800">Email: </span>
-                    {order.email}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-gray-800">Phone: </span>
-                    {order.phone}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-gray-800">Address: </span>
-                    {order.street}, {order.city}, {order.province} {order.zip}
-                  </p>
-                  <p>
-                    <span className="font-semibold text-gray-800">Payment: </span>
-                    {order.paymentMethod}
-                  </p>
-                </div>
-
-
-                <div className="space-y-3 mb-4">
-                  {order.products.map((p) => (
-                    <div
-                      key={p._id}
-                      className="flex gap-3 border rounded-xl p-3"
-                    >
-
-                      <img
-                        src={p.product?.image?.[0].url}
-                        alt={p.product?.title}
-                        className="w-16 h-16 rounded-lg object-cover border flex-shrink-0"
-                        onError={(e) => {
-                          e.target.src = "https://placehold.co/64x64?text=No+Image";
-                        }}
-                      />
-
-
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm line-clamp-1">
-                          {p.product?.title}
-                        </p>
-                        <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">
-                          {p.product?.detail}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                            Qty: {p.quantity}
-                          </span>
-                          <span className="text-sm font-semibold text-gray-800">
-                            Rs. {(p.product?.price * p.quantity).toLocaleString("en-IN")}
-                          </span>
+                  {/* Products */}
+                  <div className="space-y-3 mb-4 flex-1">
+                    {order.products.map((p) => (
+                      <div key={p._id} className="flex gap-3 border rounded-xl p-3">
+                        <img
+                          src={p.product?.image?.[0].url}
+                          alt={p.product?.title}
+                          className="w-16 h-16 rounded-lg object-cover border flex-shrink-0"
+                          onError={(e) => { e.target.src = "https://placehold.co/64x64?text=No+Image"; }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm line-clamp-1">{p.product?.title}</p>
+                          <p className="text-xs text-gray-400 line-clamp-2 mt-0.5">{p.product?.detail}</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                              Qty: {p.quantity}
+                            </span>
+                            <span className="text-sm font-semibold text-gray-800">
+                              Rs. {(p.product?.price * p.quantity).toLocaleString("en-IN")}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-
-
-                <div className="flex items-center justify-between pt-3 border-t">
-                  <p className="text-xs text-gray-400">
-                    {new Date(order.createdAt).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-400">Total</p>
-                    <p className="text-base font-bold text-gray-900">
-                      Rs. {order.total?.toLocaleString("en-IN")}
-                    </p>
+                    ))}
                   </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <p className="text-xs text-gray-400">
+                      {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric", month: "short", year: "numeric",
+                      })}
+                    </p>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">Total</p>
+                      <p className="text-base font-bold text-gray-900">
+                        Rs. {order.total?.toLocaleString("en-IN")}
+                      </p>
+                    </div>
+                  </div>
+
+
+                  {canCancel && (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmOrderId(order._id)}
+                      disabled={isCancelling && confirmOrderId === order._id}
+                      className="mt-4 w-full text-sm border border-red-300 text-red-500 py-2 rounded-lg hover:bg-red-50 hover:border-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!confirmOrderId} onOpenChange={(open) => { if (!open) setConfirmOrderId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-serif text-xl">Cancel Order?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-gray-600">
+              Are you sure you want to cancel this order? This action cannot be undone.
+              {confirmOrderId && (
+                <span className="block mt-2 font-mono text-xs bg-gray-100 px-2 py-1 rounded w-fit">
+                  #{confirmOrderId.slice(-6).toUpperCase()}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-sm border-gray-300">Go Back</AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              onClick={handleConfirmCancel}
+              disabled={isCancelling}
+              className="text-sm bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isCancelling ? "Cancelling..." : "Yes, Cancel Order"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

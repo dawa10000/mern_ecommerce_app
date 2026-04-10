@@ -12,8 +12,16 @@ const orderApi = mainApi.injectEndpoints({
       }),
       providesTags: ['Order'],
     }),
+    cancelOrder: builder.mutation({
+      query: ({ id, token }) => ({
+        url: `/checkout/${id}/cancel`,
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+      invalidatesTags: ["Orders"],
+    }),
   }),
 });
 
-export const { useGetMyOrdersQuery } = orderApi;
+export const { useGetMyOrdersQuery, useCancelOrderMutation } = orderApi;
 export default orderApi;
