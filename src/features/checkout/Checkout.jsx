@@ -72,11 +72,9 @@ function CheckoutHero() {
 }
 
 const provinces = [
-  "Western Province", "Central Province", "Southern Province",
-  "Northern Province", "Eastern Province", "North Western Province",
-  "North Central Province", "Uva Province", "Sabaragamuwa Province",
+  'Koshi', 'Madhesh', 'Bagmati', 'Gandaki', 'Lumbini', 'Karnali', 'Sudurpashchim'
 ];
-const countries = ["Sri Lanka", "India", "Maldives", "Nepal", "Bangladesh"];
+const countries = ["Nepal", "India"];
 
 const saveBillingInfo = (values) => {
   try {
@@ -94,10 +92,10 @@ const loadBillingInfo = () => {
 
 const defaultValues = {
   firstName: "", lastName: "", companyName: "",
-  country: "Sri Lanka", street: "", city: "",
-  province: "Western Province", zip: "",
+  country: "Nepal", street: "", city: "",
+  province: "Bagmati", zip: "",
   phone: "", email: "", additionalInfo: "",
-  paymentMethod: "eSewa",
+  paymentMethod: "Cash On Delivery",
 };
 
 const checkoutSchema = Yup.object({
@@ -143,7 +141,7 @@ export default function Checkout() {
   const [savedInfoCleared, setSavedInfoCleared] = useState(false);
 
   const savedInfo = !savedInfoCleared ? loadBillingInfo() : null;
-  const initialValues = savedInfo ? { ...defaultValues, ...savedInfo } : defaultValues;
+  const initialValues = savedInfo ? { ...defaultValues, ...savedInfo, paymentMethod: savedInfo.paymentMethod || "Cash On Delivery" } : defaultValues;
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const total = subtotal;
@@ -152,43 +150,46 @@ export default function Checkout() {
     `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 
   const handleSubmit = async (values) => {
-    if (cart.length === 0) { toast.error("Your cart is empty"); return; }
 
-    const products = cart.map((item) => ({ product: item.id, quantity: item.quantity }));
+
+    if (cart.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    const products = cart.map((item) => ({
+      product: item.id,
+      quantity: item.quantity,
+    }));
 
     const body = {
-      firstName: values.firstName, lastName: values.lastName,
-      companyName: values.companyName, country: values.country,
-      street: values.street, city: values.city, province: values.province,
-      zip: values.zip, phone: values.phone, email: values.email,
-      additionalInfo: values.additionalInfo, paymentMethod: values.paymentMethod,
-      products, subtotal, total,
+      ...values,
+      products,
+      subtotal,
+      total,
     };
 
     try {
       const res = await createCheckout({ body, token: user?.token }).unwrap();
-      setDialogOpen(false);
 
       if (values.paymentMethod === "eSewa") {
+
         await redirectToEsewa(res.order._id, total);
-      } else {
-        dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
-        localStorage.removeItem(STORAGE_KEY);
-        dispatch(clearCart());
-        if (res.mailError) {
-          toast.warning(`Order placed but email failed: ${res.mailError}`);
-        } else {
-          toast.success("Order placed successfully!");
-        }
-        nav("/shop");
+        return;
       }
+
+
+      dispatch(setOrderSuccess({ orderId: res.order._id, orderDetails: res.order }));
+      localStorage.removeItem(STORAGE_KEY);
+      dispatch(clearCart());
+
+      toast.success("Order placed successfully!");
+      nav("/shop");
+
     } catch (err) {
       toast.error(err?.data?.message || "Something went wrong");
-    } finally {
-      setDialogOpen(false);
     }
   };
-
   return (
     <div>
       <CheckoutHero />
@@ -296,32 +297,31 @@ export default function Checkout() {
                     <div className="border-t pt-4 space-y-3">
                       <p className="text-sm font-semibold text-gray-800">Payment Method</p>
 
-                      {/* eSewa Radio — using Formik Field */}
-                      <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "eSewa" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
-                        <Field type="radio" name="paymentMethod" value="eSewa" className="accent-green-600" />
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs font-black">e</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-800">eSewa</p>
-                            <p className="text-xs text-gray-400">Pay via eSewa digital wallet</p>
-                          </div>
-                        </div>
+
+                      <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer ${values.paymentMethod === "eSewa"
+                        ? "border-green-500 bg-green-50"
+                        : "border-gray-200"
+                        }`}>
+                        <Field
+                          type="radio"
+                          name="paymentMethod"
+                          value="eSewa"
+                          checked={values.paymentMethod === "eSewa"} // ✅ FIX
+                        />
+                        <span>eSewa</span>
                       </label>
 
-                      {/* Cash On Delivery Radio — using Formik Field */}
-                      <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "Cash On Delivery" ? "border-gray-800 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}>
-                        <Field type="radio" name="paymentMethod" value="Cash On Delivery" className="accent-gray-700" />
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs">💵</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-gray-800">Cash On Delivery</p>
-                            <p className="text-xs text-gray-400">Pay when you receive</p>
-                          </div>
-                        </div>
+                      <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer ${values.paymentMethod === "Cash On Delivery"
+                        ? "border-gray-800 bg-gray-50"
+                        : "border-gray-200"
+                        }`}>
+                        <Field
+                          type="radio"
+                          name="paymentMethod"
+                          value="Cash On Delivery"
+                          checked={values.paymentMethod === "Cash On Delivery"} // ✅ FIX
+                        />
+                        <span>Cash On Delivery</span>
                       </label>
 
                       {values.paymentMethod === "eSewa" && (
@@ -342,22 +342,15 @@ export default function Checkout() {
                       </p>
 
                       <button
-                        type="button"
+                        type="submit"
                         disabled={isLoading || cart.length === 0}
-                        onClick={async () => {
-                          const fields = Object.keys(defaultValues);
-                          const touched = fields.reduce((acc, key) => ({ ...acc, [key]: true }), {});
-                          setTouched(touched);
-                          const errors = await validateForm();
-                          if (Object.keys(errors).length === 0) {
-                            setDialogOpen(true);
-                          } else {
-                            toast.error("Please fill in all required fields");
-                          }
-                        }}
-                        className="w-full border border-gray-800 text-gray-800 text-sm py-3 rounded hover:bg-gray-800 hover:text-white transition-colors duration-200 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full border border-gray-800 text-sm py-3 rounded"
                       >
-                        {isLoading ? "Processing..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
+                        {isLoading
+                          ? "Processing..."
+                          : values.paymentMethod === "eSewa"
+                            ? "Pay with eSewa →"
+                            : "Place order"}
                       </button>
 
                       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -411,7 +404,9 @@ export default function Checkout() {
                           <AlertDialogFooter>
                             <AlertDialogCancel className="text-sm border-gray-300">Go Back</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => handleSubmit(values)}
+                              onClick={() => {
+                                document.querySelector("form").requestSubmit();
+                              }}
                               disabled={isLoading}
                               className={`text-sm text-white ${values.paymentMethod === "eSewa" ? "bg-green-600 hover:bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
                             >
