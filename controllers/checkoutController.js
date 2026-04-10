@@ -31,7 +31,7 @@ export const createCheckout = async (req, res) => {
       country, street, city, province, zip,
       phone, email, additionalInfo,
       paymentMethod, products, subtotal, total,
-      status: paymentMethod === "eSewa" ? "pending" : "processing",
+      status: paymentMethod === "eSewa" ? "pending" : "pending",
       paymentStatus: paymentMethod === "eSewa" ? "paid" : "pending",
     });
 
