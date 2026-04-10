@@ -294,7 +294,7 @@ export default function Checkout() {
                     <div className="border-t pt-4 space-y-3">
                       <p className="text-sm font-semibold text-gray-800">Payment Method</p>
 
-                      {/* eSewa Radio — using Formik Field */}
+                      {/* eSewa Radio */}
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "eSewa" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
                         <Field type="radio" name="paymentMethod" value="eSewa" className="accent-green-600" />
                         <div className="flex items-center gap-2">
@@ -308,7 +308,7 @@ export default function Checkout() {
                         </div>
                       </label>
 
-                      {/* Cash On Delivery Radio — using Formik Field */}
+                      {/* Cash On Delivery Radio */}
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "Cash On Delivery" ? "border-gray-800 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}>
                         <Field type="radio" name="paymentMethod" value="Cash On Delivery" className="accent-gray-700" />
                         <div className="flex items-center gap-2">
@@ -339,6 +339,7 @@ export default function Checkout() {
                         <strong className="text-gray-800">privacy policy.</strong>
                       </p>
 
+                      {/* ✅ FIXED: eSewa skips the dialog and submits directly */}
                       <button
                         type="button"
                         disabled={isLoading || cart.length === 0}
@@ -347,10 +348,15 @@ export default function Checkout() {
                           const touched = fields.reduce((acc, key) => ({ ...acc, [key]: true }), {});
                           setTouched(touched);
                           const errors = await validateForm();
-                          if (Object.keys(errors).length === 0) {
-                            setDialogOpen(true);
-                          } else {
+                          if (Object.keys(errors).length > 0) {
                             toast.error("Please fill in all required fields");
+                            return;
+                          }
+                          // eSewa goes straight to payment — no confirmation dialog
+                          if (values.paymentMethod === "eSewa") {
+                            await handleSubmit(values);
+                          } else {
+                            setDialogOpen(true);
                           }
                         }}
                         className="w-full border border-gray-800 text-gray-800 text-sm py-3 rounded hover:bg-gray-800 hover:text-white transition-colors duration-200 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -358,6 +364,7 @@ export default function Checkout() {
                         {isLoading ? "Pending..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
                       </button>
 
+                      {/* Dialog only shown for Cash On Delivery */}
                       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <AlertDialogContent>
                           <AlertDialogHeader>
@@ -387,7 +394,7 @@ export default function Checkout() {
                                 </div>
                                 <div className="flex justify-between text-xs text-gray-500 border-t pt-2">
                                   <span>Payment</span>
-                                  <span className={`font-medium ${values.paymentMethod === "eSewa" ? "text-green-600" : "text-gray-700"}`}>
+                                  <span className="font-medium text-gray-700">
                                     {values.paymentMethod}
                                   </span>
                                 </div>
@@ -397,11 +404,6 @@ export default function Checkout() {
                                     {values.street}, {values.city}, {values.province}
                                   </span>
                                 </div>
-                                {values.paymentMethod === "eSewa" && (
-                                  <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-xs text-green-700">
-                                    You will be redirected to eSewa to complete payment.
-                                  </div>
-                                )}
                                 <p className="text-xs text-gray-400 pt-1">By confirming, you agree to our terms.</p>
                               </div>
                             </AlertDialogDescription>
@@ -411,9 +413,9 @@ export default function Checkout() {
                             <AlertDialogAction
                               onClick={() => handleSubmit(values)}
                               disabled={isLoading}
-                              className={`text-sm text-white ${values.paymentMethod === "eSewa" ? "bg-green-600 hover:bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
+                              className="text-sm text-white bg-gray-900 hover:bg-gray-700"
                             >
-                              {isLoading ? "Pending..." : values.paymentMethod === "eSewa" ? "Pay with eSewa" : "✓ Confirm Order"}
+                              {isLoading ? "Pending..." : "✓ Confirm Order"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
