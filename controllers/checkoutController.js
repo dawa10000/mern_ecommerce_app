@@ -1,20 +1,22 @@
-
 import Checkout from "../models/Checkout.js";
 import Product from "../models/Product.js";
-import crypto from 'crypto';
-import { sendOrderConfirmedCustomer, sendOrderReceivedAdmin, sendOrderStatusUpdate } from "../utlis/mailer.js";
-
+import crypto from "crypto";
+import {
+  sendOrderConfirmedCustomer,
+  sendOrderReceivedAdmin,
+  sendOrderStatusUpdate,
+} from "../utlis/mailer.js";
 
 export const createCheckout = async (req, res) => {
   const {
     firstName, lastName, companyName,
     country, street, city, province, zip,
     phone, email, additionalInfo,
-    paymentMethod, products, subtotal, total
+    paymentMethod, products, subtotal, total,
   } = req.body;
 
   try {
-
+    // Validate stock before creating anything
     for (const item of products) {
       const product = await Product.findById(item.product);
       if (!product) {
@@ -31,17 +33,20 @@ export const createCheckout = async (req, res) => {
       country, street, city, province, zip,
       phone, email, additionalInfo,
       paymentMethod, products, subtotal, total,
-      status: paymentMethod === "eSewa" ? "pending" : "pending",
-      paymentStatus: paymentMethod === "eSewa" ? "paid" : "pending",
+      status: "pending",
+      // ✅ FIX: eSewa orders start as "pending" — not "paid".
+      // Payment is only confirmed after verifyEsewa succeeds.
+      paymentStatus: "pending",
     });
-
 
     let mailError = null;
 
+    // ✅ FIX: Only deduct stock and send emails for COD orders here.
+    // eSewa orders go through verifyEsewa first.
     if (paymentMethod !== "eSewa") {
       for (const item of products) {
         await Product.findByIdAndUpdate(item.product, {
-          $inc: { stock: -item.quantity }
+          $inc: { stock: -item.quantity },
         });
       }
       try {
@@ -58,7 +63,6 @@ export const createCheckout = async (req, res) => {
       order,
       mailError,
     });
-
   } catch (err) {
     console.log("createCheckout error:", err.message);
     return res.status(500).json({ message: err.message });
@@ -78,13 +82,12 @@ export const updateOrderStatus = async (req, res) => {
     const order = await Checkout.findByIdAndUpdate(
       id,
       { status },
-      { returnDocument: 'after' }
+      { returnDocument: "after" }
     ).populate("products.product");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
-
 
     sendOrderStatusUpdate(order).catch((err) => {
       console.error("Mailer error (non-fatal):", err.message);
@@ -138,7 +141,7 @@ export const verifyEsewa = async (req, res) => {
   try {
     const { data } = req.query;
 
-    const decoded = JSON.parse(Buffer.from(data, 'base64').toString('utf-8'));
+    const decoded = JSON.parse(Buffer.from(data, "base64").toString("utf-8"));
 
     const {
       transaction_uuid,
@@ -148,9 +151,12 @@ export const verifyEsewa = async (req, res) => {
       signature,
     } = decoded;
 
+
     if (status !== "COMPLETE") {
+      await Checkout.findByIdAndDelete(transaction_uuid);
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
+
 
     const secretKey = process.env.ESEWA_SECRET_KEY;
     const signedFields = signed_field_names.split(",");
@@ -160,36 +166,39 @@ export const verifyEsewa = async (req, res) => {
       .update(message)
       .digest("base64");
 
+
     if (signature !== expectedSignature) {
+      await Checkout.findByIdAndDelete(transaction_uuid);
       return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
     }
 
     const order = await Checkout.findByIdAndUpdate(
       transaction_uuid,
       { status: "pending", paymentStatus: "paid", transaction_code },
-      { returnDocument: 'after' }
+      { returnDocument: "after" }
     );
 
-    if (!order) return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    if (!order) {
+      return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
+    }
 
     for (const item of order.products) {
       await Product.findByIdAndUpdate(item.product._id, {
-        $inc: { stock: -item.quantity }
+        $inc: { stock: -item.quantity },
       });
     }
+
 
     sendOrderReceivedAdmin(order).catch((err) => {
       console.error("Mailer error (non-fatal):", err.message);
     });
-
     sendOrderConfirmedCustomer(order).catch((err) => {
       console.error("Mailer error (non-fatal):", err.message);
     });
 
-    return res.redirect(`${process.env.FRONTEND_URL}/payment-success?order=${order._id}`);
-
-
-
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/payment-success?order=${order._id}`
+    );
   } catch (err) {
     console.log("eSewa verify error:", err.message);
     return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
@@ -201,7 +210,6 @@ export const getEsewaSignature = async (req, res) => {
     const { total, orderId } = req.body;
     const productCode = process.env.ESEWA_PRODUCT_CODE;
     const secretKey = process.env.ESEWA_SECRET_KEY;
-
 
     const amount = Number(Number(total).toFixed(2));
 
