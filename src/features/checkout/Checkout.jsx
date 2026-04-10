@@ -355,7 +355,7 @@ export default function Checkout() {
                         }}
                         className="w-full border border-gray-800 text-gray-800 text-sm py-3 rounded hover:bg-gray-800 hover:text-white transition-colors duration-200 mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {isLoading ? "Processing..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
+                        {isLoading ? "Pending..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
                       </button>
 
                       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -413,7 +413,7 @@ export default function Checkout() {
                               disabled={isLoading}
                               className={`text-sm text-white ${values.paymentMethod === "eSewa" ? "bg-green-600 hover:bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
                             >
-                              {isLoading ? "Processing..." : values.paymentMethod === "eSewa" ? "Pay with eSewa" : "✓ Confirm Order"}
+                              {isLoading ? "Pending..." : values.paymentMethod === "eSewa" ? "Pay with eSewa" : "✓ Confirm Order"}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
