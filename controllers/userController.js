@@ -47,7 +47,7 @@ export const loginUser = async (req, res) => {
     return res.status(200).json({ role: isExist.role, token });
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -59,7 +59,7 @@ export const registerUser = async (req, res) => {
     if (isExist) {
 
       await deleteFromCloudinary(req.imagePath);
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(409).json({ message: "User already exists" });
     }
 
     const hashPass = bcrypt.hashSync(password, 10);
@@ -74,7 +74,7 @@ export const registerUser = async (req, res) => {
     return res.status(201).json({ message: "Registered successfully" });
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -84,7 +84,7 @@ export const getUserProfile = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     return res.status(200).json(user);
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -108,6 +108,6 @@ export const updateUserProfile = async (req, res) => {
     return res.status(200).json({ message: "Profile updated" });
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };

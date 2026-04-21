@@ -28,7 +28,7 @@ export const top5Product = async (req, res) => {
       .limit(5);
     return res.status(200).json(product);
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(450).json({ message: err.message });
   }
 };
 
@@ -74,7 +74,7 @@ export const getProducts = async (req, res) => {
     });
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -84,7 +84,7 @@ export const getProduct = async (req, res) => {
     if (!product) return res.status(404).json({ message: "Product not found" });
     return res.status(200).json(product);
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -101,7 +101,7 @@ export const createProduct = async (req, res) => {
     return res.status(201).json({ message: "Product created successfully" });
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
@@ -151,6 +151,6 @@ export const deleteProduct = async (req, res) => {
     return res.status(200).json({ message: "Product deleted" });
 
   } catch (err) {
-    return res.status(400).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };

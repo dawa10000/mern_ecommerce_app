@@ -20,7 +20,7 @@ export const getReview = async (req, res) => {
 
 
   } catch (err) {
-    return res.status(400).json({
+    return res.status(500).json({
       message: err.message
     })
 
@@ -51,7 +51,7 @@ export const createReview = async (req, res) => {
     return res.status(201).json({ message: "Review created successfully" });
 
   } catch (err) {
-    return res.status(400).json({
+    return res.status(500).json({
       message: err.message
     })
 
