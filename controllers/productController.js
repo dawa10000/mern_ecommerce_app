@@ -28,7 +28,7 @@ export const top5Product = async (req, res) => {
       .limit(5);
     return res.status(200).json(product);
   } catch (err) {
-    return res.status(450).json({ message: err.message });
+    return res.status(500).json({ message: err.message });
   }
 };
 
