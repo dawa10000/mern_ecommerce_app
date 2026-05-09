@@ -73,6 +73,7 @@ export default function App() {
     OneSignal.init({
       appId: 'fe5daf53-a09d-4a94-bb5e-0541d0055f71',
       allowLocalhostAsSecureOrigin: true,
+      serviceWorkerPath: "/OneSignalSDK.sw.js",
       notifyButton: { enable: true },
       welcomeNotification: {
         title: "Welcome to My App",
