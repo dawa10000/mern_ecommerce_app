@@ -79,15 +79,7 @@ export default function App() {
         title: "Welcome to My App",
         message: "Thank you for using our app!",
       },
-    }).then(() => {
-
-      return OneSignal.Notifications.requestPermission();
-    }).then((accepted) => {
-      console.log("Push accepted:", accepted);
-    }).catch((err) => {
-      if (err?.message?.includes("Permission dismissed")) return;
-      console.warn("OneSignal:", err.message);
-    });
+    })
   }, []);
   return <RouterProvider router={router} />;
 }
