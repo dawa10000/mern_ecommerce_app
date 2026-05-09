@@ -28,7 +28,7 @@ export default function App() {
 
 
     OneSignal.init({
-      appId: 'f80e64cd-40ad-495b-a0a0-e94b0d4fcba7',
+      appId: 'fe5daf53-a09d-4a94-bb5e-0541d0055f71',
 
       notifyButton: {
         enable: true,

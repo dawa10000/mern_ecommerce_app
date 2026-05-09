@@ -139,7 +139,7 @@ export default function Checkout() {
   const [createCheckout, { isLoading }] = useCreateCheckoutMutation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [savedInfoCleared, setSavedInfoCleared] = useState(false);
-  // Snapshot of values at the moment the dialog is opened
+
   const [pendingValues, setPendingValues] = useState(null);
 
   const savedInfo = !savedInfoCleared ? loadBillingInfo() : null;
@@ -151,7 +151,7 @@ export default function Checkout() {
   const formatPrice = (amount) =>
     `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 
-  // Called only from the dialog's confirm button — uses the pendingValues snapshot
+
   const handleSubmit = async (values) => {
     if (cart.length === 0) { toast.error("Your cart is empty"); return; }
 
@@ -190,7 +190,7 @@ export default function Checkout() {
     }
   };
 
-  // Validates the form, snapshots the current values, then opens the dialog
+
   const handleOpenDialog = async (values, validateForm, setTouched) => {
     const fields = Object.keys(defaultValues);
     const touched = fields.reduce((acc, key) => ({ ...acc, [key]: true }), {});
@@ -241,7 +241,7 @@ export default function Checkout() {
                 <AutoSave />
                 <div className="flex flex-col lg:flex-row gap-16">
 
-                  {/* Left: Billing Fields */}
+
                   <div className="flex-1 space-y-6">
                     <div className="flex gap-4">
                       <div className="flex-1"><FormField label="First Name" name="firstName" /></div>
@@ -285,7 +285,7 @@ export default function Checkout() {
                     </div>
                   </div>
 
-                  {/* Right: Order Summary + Payment */}
+
                   <div className="w-full lg:w-80 space-y-4">
                     <div>
                       <div className="flex justify-between text-sm font-semibold mb-3 border-b pb-2">
@@ -311,7 +311,7 @@ export default function Checkout() {
                     <div className="border-t pt-4 space-y-3">
                       <p className="text-sm font-semibold text-gray-800">Payment Method</p>
 
-                      {/* eSewa Radio */}
+
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "eSewa" ? "border-green-500 bg-green-50" : "border-gray-200 hover:border-gray-300"}`}>
                         <Field type="radio" name="paymentMethod" value="eSewa" className="accent-green-600" />
                         <div className="flex items-center gap-2">
@@ -325,7 +325,7 @@ export default function Checkout() {
                         </div>
                       </label>
 
-                      {/* Cash On Delivery Radio */}
+
                       <label className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${values.paymentMethod === "Cash On Delivery" ? "border-gray-800 bg-gray-50" : "border-gray-200 hover:border-gray-300"}`}>
                         <Field type="radio" name="paymentMethod" value="Cash On Delivery" className="accent-gray-700" />
                         <div className="flex items-center gap-2">
@@ -356,7 +356,7 @@ export default function Checkout() {
                         <strong className="text-gray-800">privacy policy.</strong>
                       </p>
 
-                      {/* ✅ FIX: onClick validates then snapshots values and opens dialog once */}
+
                       <button
                         type="button"
                         disabled={isLoading || cart.length === 0}
@@ -366,7 +366,7 @@ export default function Checkout() {
                         {isLoading ? "Pending..." : values.paymentMethod === "eSewa" ? "Pay with eSewa →" : "Place order"}
                       </button>
 
-                      {/* ✅ FIX: Dialog uses pendingValues snapshot — not live Formik values */}
+
                       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
                         <AlertDialogContent>
                           <AlertDialogHeader>

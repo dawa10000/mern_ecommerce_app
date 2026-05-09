@@ -42,6 +42,9 @@ const adminlistItems = [
 const DropdownMenuButton = ({ user }) => {
   const dispatch = useDispatch();
   const nav = useNavigate();
+  const { isLoading, error, data } = useGetUserQuery(user?.token, {
+    skip: !user?.token,
+  });
 
   if (!user) {
     return (
@@ -53,10 +56,6 @@ const DropdownMenuButton = ({ user }) => {
 
   const listItem =
     user?.role === "admin" ? adminlistItems : userlistItems;
-
-  const { isLoading, error, data } = useGetUserQuery(user?.token, {
-    skip: !user?.token,
-  });
 
 
   if (isLoading) {
