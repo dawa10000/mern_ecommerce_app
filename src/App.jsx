@@ -74,12 +74,7 @@ export default function App() {
       appId: 'fe5daf53-a09d-4a94-bb5e-0541d0055f71',
       allowLocalhostAsSecureOrigin: true,
       serviceWorkerPath: "/OneSignalSDK.sw.js",
-      notifyButton: { enable: true },
-      welcomeNotification: {
-        disable: false,
-        title: "Welcome to My App",
-        message: "Thank you for using our app!",
-      }
+      notifyButton: { enable: true }
 
     }, []);
     return <RouterProvider router={router} />;
