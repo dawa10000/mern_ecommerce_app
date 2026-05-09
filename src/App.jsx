@@ -79,11 +79,8 @@ export default function App() {
         disable: false,
         title: "Welcome to My App",
         message: "Thank you for using our app!",
-      },
-    }).then(() => {
-      console.log("OneSignal initialized");
-    });
+      }
 
-  }, []);
-  return <RouterProvider router={router} />;
-}
+    }, []);
+    return <RouterProvider router={router} />;
+  }
