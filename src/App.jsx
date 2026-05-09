@@ -83,6 +83,7 @@ export default function App() {
     }).then(() => {
       console.log("OneSignal initialized");
     });
+
   }, []);
   return <RouterProvider router={router} />;
 }
