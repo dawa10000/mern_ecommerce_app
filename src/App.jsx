@@ -76,10 +76,13 @@ export default function App() {
       serviceWorkerPath: "/OneSignalSDK.sw.js",
       notifyButton: { enable: true },
       welcomeNotification: {
+        disable: false,
         title: "Welcome to My App",
         message: "Thank you for using our app!",
       },
-    })
+    }).then(() => {
+      console.log("OneSignal initialized");
+    });
   }, []);
   return <RouterProvider router={router} />;
 }
