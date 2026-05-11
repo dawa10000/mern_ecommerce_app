@@ -83,7 +83,7 @@ export default function Top5Products() {
                     <CardFooter className='justify-between gap-3 max-sm:flex-col max-sm:items-stretch'>
                       <div className='flex flex-col'>
                         <span className='text-sm font-medium uppercase'>Price</span>
-                        <span className='text-xl font-semibold'>Rs{price}</span>
+                        <span className='text-xl font-semibold'>Rs {price}</span>
                       </div>
 
                     </CardFooter>

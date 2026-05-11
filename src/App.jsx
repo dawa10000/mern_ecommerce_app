@@ -22,6 +22,7 @@ import PaymentFailed from "./features/esewa/PaymentFailed.jsx";
 import RequireAdminAuth from "./components/RequireAdminAuth.jsx";
 import RequireUserAuth from "./components/RequireUserAuth.jsx";
 
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -73,25 +74,8 @@ export default function App() {
       appId: 'fe5daf53-a09d-4a94-bb5e-0541d0055f71',
       allowLocalhostAsSecureOrigin: true,
       serviceWorkerPath: "/OneSignalSDK.sw.js",
-      notifyButton: { enable: true },
-      welcomeNotification: {
-        disable: false,
-        title: "Welcome to ecommerce app",
-        message: "Thank you for visiting my app",
-      }
-    }).then(() => {
-      OneSignal.Slidedown.promptPush().then(() => {
-        if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification("Welcome to ecommerce app", {
-              body: "Thank you for visiting my app",
-              icon: "/icon.png",
-            });
-            localStorage.setItem("welcomed", "true");
-          });
-        }
-      });
     });
   }, []);
+
   return <RouterProvider router={router} />;
 }
