@@ -73,7 +73,12 @@ export default function App() {
       appId: 'fe5daf53-a09d-4a94-bb5e-0541d0055f71',
       allowLocalhostAsSecureOrigin: true,
       serviceWorkerPath: "/OneSignalSDK.sw.js",
-      notifyButton: { enable: true }
+      notifyButton: { enable: true },
+      welcomeNotification: {
+        disable: false,
+        title: "Welcome to ecommerce app",
+        message: "Thank you for visiting my app",
+      }
     }).then(() => {
       if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
         navigator.serviceWorker.ready.then((registration) => {
@@ -100,4 +105,4 @@ export default function App() {
   }, []);
 
   return <RouterProvider router={router} />;
-}                                
+}
