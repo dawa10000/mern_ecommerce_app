@@ -80,29 +80,18 @@ export default function App() {
         message: "Thank you for visiting my app",
       }
     }).then(() => {
-      if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
-        navigator.serviceWorker.ready.then((registration) => {
-          registration.showNotification("Welcome to ecommerce app", {
-            body: "Thank you for visiting my app",
-            icon: "/icon.png",
-          });
-          localStorage.setItem("welcomed", "true");
-        });
-      } else if (Notification.permission !== "denied") {
-        OneSignal.showSlidedownPrompt().then(() => {
+      OneSignal.Slidedown.promptPush().then(() => {
+        if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
           navigator.serviceWorker.ready.then((registration) => {
-            if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
-              registration.showNotification("Welcome to ecommerce app", {
-                body: "Thank you for visiting my app",
-                icon: "/icon.png",
-              });
-              localStorage.setItem("welcomed", "true");
-            }
+            registration.showNotification("Welcome to ecommerce app", {
+              body: "Thank you for visiting my app",
+              icon: "/icon.png",
+            });
+            localStorage.setItem("welcomed", "true");
           });
-        });
-      }
+        }
+      });
     });
   }, []);
-
   return <RouterProvider router={router} />;
 }
