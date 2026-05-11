@@ -75,18 +75,29 @@ export default function App() {
       serviceWorkerPath: "/OneSignalSDK.sw.js",
       notifyButton: { enable: true }
     }).then(() => {
-      OneSignal.Notifications.requestPermission().then((granted) => {
-        if (granted) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification("Welcome to ecommerce app", {
-              body: "Thank you for visiting my app",
-              icon: "/icon.png",
-            });
+      if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification("Welcome to ecommerce app", {
+            body: "Thank you for visiting my app",
+            icon: "/icon.png",
           });
-        }
-      });
+          localStorage.setItem("welcomed", "true");
+        });
+      } else if (Notification.permission !== "denied") {
+        OneSignal.showSlidedownPrompt().then(() => {
+          navigator.serviceWorker.ready.then((registration) => {
+            if (Notification.permission === "granted" && !localStorage.getItem("welcomed")) {
+              registration.showNotification("Welcome to ecommerce app", {
+                body: "Thank you for visiting my app",
+                icon: "/icon.png",
+              });
+              localStorage.setItem("welcomed", "true");
+            }
+          });
+        });
+      }
     });
   }, []);
 
   return <RouterProvider router={router} />;
-}
+}                                
