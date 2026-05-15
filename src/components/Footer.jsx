@@ -22,8 +22,14 @@ export default function Footer() {
           <div>
             <h4 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, color: "rgba(255,255,255,0.4)", fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 20 }}>Newsletter</h4>
             <div style={{ display: "flex", gap: 0, overflow: "hidden", borderRadius: 4, border: "1px solid rgba(255,255,255,0.15)" }}>
-              <input type="email" placeholder="Your email" style={{ flex: 1, background: "transparent", border: "none", padding: "10px 14px", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: "0.875rem", outline: "none" }} />
-              <button style={{ background: "#B8860B", color: "white", border: "none", padding: "10px 16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", whiteSpace: "nowrap" }}>Subscribe</button>
+              <input
+                type="email"
+                placeholder="Your email"
+                style={{ flex: 1, background: "transparent", border: "none", padding: "10px 14px", color: "white", fontFamily: "'DM Sans', sans-serif", fontSize: "0.875rem", outline: "none" }}
+              />
+              <button style={{ background: "#B8860B", color: "white", border: "none", padding: "10px 16px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
+                Subscribe
+              </button>
             </div>
           </div>
         </div>
