@@ -7,9 +7,6 @@ import { useNavigate } from "react-router";
 const IMAGES = {
   hero: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&q=80",
   asgaard: "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=800&q=80",
-  blog1: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600&q=80",
-  blog2: "https://images.unsplash.com/photo-1600210492493-0946911123ea?w=600&q=80",
-  blog3: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=600&q=80",
   insta1: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=300&q=80",
   insta2: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=300&q=80",
   insta3: "https://images.unsplash.com/photo-1616137466211-f939a420be84?w=300&q=80",
@@ -20,11 +17,6 @@ const IMAGES = {
 
 
 
-const blogs = [
-  { id: 1, title: "Going all-in with millennial design", excerpt: "Discover how millennial aesthetics are redefining modern interiors with bold choices.", img: IMAGES.blog1, date: "01 Oct 2023", read: "5 min" },
-  { id: 2, title: "Styling your home for the seasons", excerpt: "Simple swaps and layering techniques to refresh any living space as the seasons shift.", img: IMAGES.blog2, date: "14 Oct 2023", read: "4 min" },
-  { id: 3, title: "Minimalism: less is more at home", excerpt: "A deep dive into achieving warmth and personality while keeping clutter at bay.", img: IMAGES.blog3, date: "28 Oct 2023", read: "6 min" },
-];
 
 
 // --- Hero ---
@@ -96,6 +88,7 @@ function Hero() {
 
 // --- Asgaard Banner ---
 function AsgaardBanner() {
+  const nav = useNavigate();
   return (
     <section style={{ position: "relative", overflow: "hidden", minHeight: 440 }}>
       <img src={IMAGES.asgaard} alt="Asgaard sofa" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -109,7 +102,7 @@ function AsgaardBanner() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.75)", fontSize: "1rem", lineHeight: 1.7, marginBottom: "2rem", maxWidth: 380 }}>
             Inspired by Scandinavian heritage. Built for the modern home. Experience unparalleled comfort.
           </p>
-          <button style={{ background: "#B8860B", color: "white", border: "none", borderRadius: 4, padding: "14px 36px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(184,134,11,0.4)" }}
+          <button onClick={() => nav('/shop')}  style={{ background: "#B8860B", color: "white", border: "none", borderRadius: 4, padding: "14px 36px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(184,134,11,0.4)" }}
             onMouseEnter={e => { e.target.style.background = "#E8C84A"; e.target.style.color = "#1A1209"; }}
             onMouseLeave={e => { e.target.style.background = "#B8860B"; e.target.style.color = "white"; }}>
             Order Now
@@ -120,45 +113,7 @@ function AsgaardBanner() {
   );
 }
 
-// --- Blog Section ---
-function BlogSection() {
-  const [hovered, setHovered] = useState(null);
-  return (
-    <section style={{ background: "white", padding: "5rem 0" }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", fontWeight: 600, color: "#B8860B", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>Our Journal</p>
-          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.5vw, 2.5rem)", fontWeight: 800, color: "#1A1209", letterSpacing: "-0.02em" }}>From The Blog</h2>
-        </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2rem" }}>
-          {blogs.map((blog) => (
-            <article key={blog.id} style={{ cursor: "pointer" }} onMouseEnter={() => setHovered(blog.id)} onMouseLeave={() => setHovered(null)}>
-              <div style={{ borderRadius: 12, overflow: "hidden", aspectRatio: "3/2", marginBottom: "1.25rem" }}>
-                <img src={blog.img} alt={blog.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.5s", transform: hovered === blog.id ? "scale(1.05)" : "scale(1)", display: "block" }} />
-              </div>
-              <div style={{ display: "flex", gap: 16, marginBottom: 10 }}>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "#B8860B", fontWeight: 600 }}>⏱ {blog.read} read</span>
-                <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.75rem", color: "#9A8A72" }}>📅 {blog.date}</span>
-              </div>
-              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", fontWeight: 700, marginBottom: 8, lineHeight: 1.3, transition: "color 0.2s", color: hovered === blog.id ? "#B8860B" : "#1A1209" }}>{blog.title}</h3>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", color: "#9A8A72", fontSize: "0.875rem", lineHeight: 1.6, marginBottom: 12 }}>{blog.excerpt}</p>
-              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.8rem", color: "#1A1209", borderBottom: "2px solid #B8860B", paddingBottom: 2 }}>Read More →</span>
-            </article>
-          ))}
-        </div>
-
-        <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-          <button style={{ background: "transparent", color: "#1A1209", border: "2px solid #1A1209", borderRadius: 4, padding: "12px 36px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.875rem", cursor: "pointer", transition: "all 0.2s" }}
-            onMouseEnter={e => { e.target.style.background = "#1A1209"; e.target.style.color = "white"; }}
-            onMouseLeave={e => { e.target.style.background = "transparent"; e.target.style.color = "#1A1209"; }}>
-            View All Posts
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // --- Instagram Section ---
 function InstagramSection() {
@@ -208,7 +163,6 @@ export default function FurnitureHomepage() {
       <Hero />
       <Top5Products />
       <AsgaardBanner />
-      <BlogSection />
       <InstagramSection />
 
     </div>

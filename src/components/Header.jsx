@@ -34,7 +34,6 @@ export default function Header() {
             <li onClick={() => nav('/')} className="hover:text-yellow-700 cursor-pointer transition-colors">Home</li>
             <li onClick={() => nav('/shop')} className="hover:text-yellow-700 cursor-pointer transition-colors">Shop</li>
             <li className="hover:text-yellow-700 cursor-pointer transition-colors">About</li>
-            <li className="hover:text-yellow-700 cursor-pointer transition-colors">Contact</li>
 
 
           </ul>
@@ -82,7 +81,6 @@ export default function Header() {
             <li onClick={() => nav('/')} className="hover:text-yellow-700 cursor-pointer transition-colors">Home</li>
             <li onClick={() => nav('/shop')} className="hover:text-yellow-700 cursor-pointer transition-colors">Shop</li>
             <li className="hover:text-yellow-700 cursor-pointer transition-colors">About</li>
-            <li className="hover:text-yellow-700 cursor-pointer transition-colors">Contact</li>
 
 
           </ul>
