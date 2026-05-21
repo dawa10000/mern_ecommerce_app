@@ -130,7 +130,7 @@ export const updateOrderStatus = async (req, res) => {
     const order = await Checkout.findByIdAndUpdate(
       id,
       { status },
-      { returnDocument: "after" }
+      { new: true }
     ).populate("products.product");
 
     if (!order) {
@@ -220,7 +220,7 @@ export const verifyEsewa = async (req, res) => {
     const order = await Checkout.findByIdAndUpdate(
       transaction_uuid,
       { status: "pending", paymentStatus: "paid", transaction_code },
-      { returnDocument: "after" }
+      { new: true }
     );
 
     if (!order) return res.redirect(`${process.env.FRONTEND_URL}/payment-failed`);
