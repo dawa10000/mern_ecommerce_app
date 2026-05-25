@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import Top5Products from "../product/Top5Products.jsx";
 import { useNavigate } from "react-router";
 
@@ -102,7 +102,7 @@ function AsgaardBanner() {
           <p style={{ fontFamily: "'DM Sans', sans-serif", color: "rgba(255,255,255,0.75)", fontSize: "1rem", lineHeight: 1.7, marginBottom: "2rem", maxWidth: 380 }}>
             Inspired by Scandinavian heritage. Built for the modern home. Experience unparalleled comfort.
           </p>
-          <button onClick={() => nav('/shop')}  style={{ background: "#B8860B", color: "white", border: "none", borderRadius: 4, padding: "14px 36px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(184,134,11,0.4)" }}
+          <button onClick={() => nav('/shop')} style={{ background: "#B8860B", color: "white", border: "none", borderRadius: 4, padding: "14px 36px", fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.05em", cursor: "pointer", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(184,134,11,0.4)" }}
             onMouseEnter={e => { e.target.style.background = "#E8C84A"; e.target.style.color = "#1A1209"; }}
             onMouseLeave={e => { e.target.style.background = "#B8860B"; e.target.style.color = "white"; }}>
             Order Now

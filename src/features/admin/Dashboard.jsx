@@ -7,7 +7,20 @@ import ProductList from "./ProductList.jsx";
 export default function Dashboard() {
   const [page, setPage] = useState(1);
   const nav = useNavigate();
-  const { data } = useGetProductsQuery({ page, limit: 12 });
+  const { data, isLoading } = useGetProductsQuery({ page, limit: 12 });
+
+  if (isLoading) return (
+    <div className="min-h-screen bg-gray-50 p-10">
+      <div className="max-w-7xl mx-auto">
+        <div className="h-10 w-64 bg-gray-200 rounded-lg mb-2 animate-pulse" />
+        <div className="flex flex-wrap gap-6 mt-10">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="w-96 h-80 rounded-2xl bg-[#1f2b6c]/20 animate-pulse" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className='p-5 mt-5'>
