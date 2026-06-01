@@ -18,7 +18,7 @@ const orderApi = mainApi.injectEndpoints({
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       }),
-      invalidatesTags: ["Orders"],
+      invalidatesTags: ["Order"],
     }),
   }),
 });
