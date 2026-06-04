@@ -21,16 +21,12 @@ const checkoutSchema = new mongoose.Schema({
   additionalInfo: { type: String },
   paymentMethod: {
     type: String,
-    enum: ["eSewa", "Cash On Delivery"],
-    default: "eSewa"
+    default: "Cash On Delivery"
   },
   paymentStatus: {
     type: String,
     enum: ["pending", "paid", "failed"],
     default: "pending"
-  },
-  transaction_code: {
-    type: String,
   },
   products: [
     {
