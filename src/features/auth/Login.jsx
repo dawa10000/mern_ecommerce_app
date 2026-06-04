@@ -61,7 +61,7 @@ export default function Login() {
                 toast.success('Login Successfully');
 
                 dispatch(setUser(response));
-                nav(-1);
+                nav('/');
 
 
               } catch (err) {
